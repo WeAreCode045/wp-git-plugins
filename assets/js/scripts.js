@@ -1,4 +1,11 @@
 jQuery(document).ready(function($) {
+    // Ensure main branch is set if none selected when adding repo
+    $('#wp-git-plugins-add-repo').on('submit', function(e) {
+        var branchSelect = $('#repo-branch');
+        if (!branchSelect.val()) {
+            branchSelect.val('main');
+        }
+    });
     // Branch change UI logic for repo list
     $('.wp-git-plugins-container').on('click', '.change-branch-btn', function(e) {
         e.preventDefault();
