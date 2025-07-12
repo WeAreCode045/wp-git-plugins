@@ -71,6 +71,7 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         const button = $(this);
         const repoUrl = button.data('repo');
+        const isPrivate = $('#is-private').is(':checked') ? 1 : 0;
         
         button.prop('disabled', true).html('<span class="spinner is-active"></span>');
         
@@ -85,6 +86,7 @@ jQuery(document).ready(function($) {
             success: function(response) {
                 if (response.success) {
                     showNotice('success', response.data.message);
+                is_private: isPrivate
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
                     showNotice('error', response.data.message);

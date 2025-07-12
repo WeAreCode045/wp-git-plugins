@@ -365,7 +365,7 @@ class WP_Git_Plugins_Repository {
         return new WP_Error('plugin_not_found', __('Could not determine the main plugin file.', 'wp-git-plugins'));
     }
     
-    public function get_repository_branches($repo_url) {
+    public function get_repository_branches($repo_url, $is_private = 0) {
         $repo_data = $this->parse_github_url($repo_url);
         if (is_wp_error($repo_data)) {
             return $repo_data;
@@ -378,7 +378,7 @@ class WP_Git_Plugins_Repository {
         );
 
         $args = [];
-        if (!empty($this->github_token)) {
+        if ($is_private && !empty($this->github_token)) {
             $args['headers'] = [
                 'Authorization' => 'token ' . $this->github_token,
                 'Accept' => 'application/vnd.github.v3+json'

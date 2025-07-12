@@ -266,13 +266,14 @@ class WP_Git_Plugins_Admin {
         }
         
         $repo_url = isset($_POST['repo_url']) ? esc_url_raw($_POST['repo_url']) : '';
+        $is_private = isset($_POST['is_private']) ? intval($_POST['is_private']) : 0;
         
         if (empty($repo_url)) {
             wp_send_json_error(__('Repository URL is required.', 'wp-git-plugins'));
         }
         
         $repository = new WP_Git_Plugins_Repository();
-        $branches = $repository->get_repository_branches($repo_url);
+        $branches = $repository->get_repository_branches($repo_url, $is_private);
         
         if (is_wp_error($branches)) {
             wp_send_json_error($branches->get_error_message());
