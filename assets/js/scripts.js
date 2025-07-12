@@ -1,10 +1,38 @@
 jQuery(document).ready(function($) {
-    // Ensure main branch is set if none selected when adding repo
-    document.getElementById('wp-git-plugins-add-repo')?.addEventListener('submit', function(e) {
-        var branchSelect = document.getElementById('repo-branch');
-        if (branchSelect && !branchSelect.value) {
-            branchSelect.value = 'main';
-        }
+    // AJAX add-repository form
+    $('#wp-git-plugins-add-repo').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const repoUrl = $('#repo-url').val().trim();
+        const isPrivate = $('#is-private').is(':checked') ? 1 : 0;
+        // Always use 'main' branch for initial add
+        const branch = 'main';
+        const nonce = $('#wp-git-plugins_nonce').val();
+        form.find('button[type="submit"]').prop('disabled', true).html('<span class="spinner is-active"></span>');
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_add_repo',
+                nonce: nonce,
+                repo_url: repoUrl,
+                repo_branch: branch,
+                is_private: isPrivate
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || 'Repository added successfully.');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showNotice('error', response.data.message || 'Failed to add repository.');
+                    form.find('button[type="submit"]').prop('disabled', false).html('Add Repository');
+                }
+            },
+            error: function() {
+                showNotice('error', 'An error occurred. Please try again.');
+                form.find('button[type="submit"]').prop('disabled', false).html('Add Repository');
+            }
+        });
     });
     // Branch change UI logic for repo list
     $('.wp-git-plugins-container').on('click', '.change-branch-btn', function(e) {
