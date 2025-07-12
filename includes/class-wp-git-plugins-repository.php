@@ -1,3 +1,43 @@
+    /**
+     * Change the branch for a repository and pull latest code
+     */
+    public function change_repository_branch($repo_url, $branch) {
+        $repositories = $this->get_repositories();
+        $found = false;
+        foreach ($repositories as &$repo) {
+            if ($repo['url'] === $repo_url) {
+                $repo['branch'] = $branch;
+                $found = true;
+                break;
+            }
+        }
+        if (!$found) {
+            return new WP_Error('repo_not_found', __('Repository not found.', 'wp-git-plugins'));
+        }
+        // Save updated branch
+        update_option($this->repositories_option, $repositories);
+        // Pull latest code from new branch (simple implementation)
+        $repo_data = $this->parse_github_url($repo_url);
+        if (is_wp_error($repo_data)) {
+            return $repo_data;
+        }
+        $plugin_dir = WP_PLUGIN_DIR . '/' . $repo_data['name'];
+        if (!is_dir($plugin_dir)) {
+            return new WP_Error('plugin_dir_missing', __('Plugin directory not found.', 'wp-git-plugins'));
+        }
+        // Run git fetch/checkout/pull
+        $cmd = sprintf('cd %s && git fetch origin %s && git checkout %s && git pull origin %s 2>&1',
+            escapeshellarg($plugin_dir),
+            escapeshellarg($branch),
+            escapeshellarg($branch),
+            escapeshellarg($branch)
+        );
+        $output = shell_exec($cmd);
+        if (strpos($output, 'error') !== false) {
+            return new WP_Error('git_error', __('Git error: ', 'wp-git-plugins') . $output);
+        }
+        return true;
+    }
 <?php
 class WP_Git_Plugins_Repository {
     private $github_token;

@@ -67,8 +67,12 @@ $repositories = $repository->get_repositories();
                     
                     $is_plugin_active = $is_plugin_installed ? is_plugin_active($plugin_slug) : false;
                 ?>
-                    <tr>
+                    <tr class="repo-row" data-repo="<?php echo esc_attr($repo['url']); ?>">
                         <td>
+                            <div style="font-size:12px; color:#666; margin-bottom:4px;">
+                                <?php esc_html_e('Branch:', 'wp-git-plugins'); ?>
+                                <strong><?php echo esc_html($repo['branch'] ?? 'main'); ?></strong>
+                            </div>
                             <strong>
                                 <a href="<?php echo esc_url($repo['url']); ?>" target="_blank" rel="noopener noreferrer">
                                     <?php echo esc_html($repo['name']); ?>
@@ -77,6 +81,18 @@ $repositories = $repository->get_repositories();
                             <?php if ($repo['is_private']) : ?>
                                 <span class="dashicons dashicons-lock" title="<?php esc_attr_e('Private Repository', 'wp-git-plugins'); ?>"></span>
                             <?php endif; ?>
+                            <div style="margin-top:8px;">
+                                <button class="button button-small change-branch-btn" type="button">Change Branch</button>
+                                <?php
+                                // Fetch branches for dropdown (sync for now, ideally via AJAX)
+                                $branches = $repository->get_repository_branches($repo['url'], $repo['is_private']);
+                                ?>
+                                <select class="branch-select" style="display:none; min-width:120px; margin-left:8px;">
+                                    <?php if (is_array($branches)) : foreach ($branches as $branch) : ?>
+                                        <option value="<?php echo esc_attr($branch); ?>" <?php selected($branch, $repo['branch'] ?? 'main'); ?>><?php echo esc_html($branch); ?></option>
+                                    <?php endforeach; endif; ?>
+                                </select>
+                            </div>
                         </td>
                         <td>
                             <?php if ($is_plugin_installed) : ?>

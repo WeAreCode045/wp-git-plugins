@@ -1,4 +1,43 @@
 jQuery(document).ready(function($) {
+    // Branch change UI logic for repo list
+    $('.wp-git-plugins-container').on('click', '.change-branch-btn', function(e) {
+        e.preventDefault();
+        const repoRow = $(this).closest('.repo-row');
+        repoRow.find('.branch-select').toggle();
+    });
+
+    // Handle branch selection and change
+    $('.wp-git-plugins-container').on('change', '.branch-select', function(e) {
+        const select = $(this);
+        const repoRow = select.closest('.repo-row');
+        const repoUrl = repoRow.data('repo');
+        const newBranch = select.val();
+        const button = repoRow.find('.change-branch-btn');
+        button.prop('disabled', true).html('<span class="spinner is-active"></span>');
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_change_branch',
+                nonce: wpGitPlugins.ajax_nonce,
+                repo_url: repoUrl,
+                branch: newBranch
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', 'Branch changed to ' + newBranch);
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showNotice('error', response.data.message || 'Failed to change branch');
+                    button.prop('disabled', false).html('Change Branch');
+                }
+            },
+            error: function() {
+                showNotice('error', 'An error occurred. Please try again.');
+                button.prop('disabled', false).html('Change Branch');
+            }
+        });
+    });
     // Debounce function to limit API calls
     function debounce(func, wait) {
         let timeout;

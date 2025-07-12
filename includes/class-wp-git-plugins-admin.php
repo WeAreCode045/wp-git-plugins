@@ -1,3 +1,23 @@
+    /**
+     * AJAX handler for changing repository branch
+     */
+    public function ajax_change_branch() {
+        check_ajax_referer('wp_git_plugins_ajax', 'nonce');
+        if (!current_user_can('install_plugins')) {
+            wp_send_json_error(__('You do not have sufficient permissions to change branches.', 'wp-git-plugins'));
+        }
+        $repo_url = isset($_POST['repo_url']) ? esc_url_raw($_POST['repo_url']) : '';
+        $branch = isset($_POST['branch']) ? sanitize_text_field($_POST['branch']) : '';
+        if (empty($repo_url) || empty($branch)) {
+            wp_send_json_error(__('Repository URL and branch are required.', 'wp-git-plugins'));
+        }
+        $repository = new WP_Git_Plugins_Repository();
+        $result = $repository->change_repository_branch($repo_url, $branch);
+        if (is_wp_error($result)) {
+            wp_send_json_error($result->get_error_message());
+        }
+        wp_send_json_success(['message' => __('Branch changed successfully.', 'wp-git-plugins')]);
+    }
 <?php
 class WP_Git_Plugins_Admin {
     private $plugin_name;
@@ -74,6 +94,7 @@ class WP_Git_Plugins_Admin {
         add_action('wp_ajax_wp_git_plugins_delete_plugin', [$this, 'ajax_delete_plugin']);
         add_action('wp_ajax_wp_git_plugins_check_updates', [$this, 'ajax_check_updates']);
         add_action('wp_ajax_wp_git_plugins_get_branches', [$this, 'ajax_get_branches']);
+        add_action('wp_ajax_wp_git_plugins_change_branch', [$this, 'ajax_change_branch']);
     }
     
     public function add_admin_menus() {
