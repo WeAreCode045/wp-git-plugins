@@ -1,0 +1,177 @@
+/* Main Layout */
+.wp-git-plugins-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.wp-git-plugins-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.wp-git-plugins-sidebar {
+    width: 30%;
+}
+
+.wp-git-plugins-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.wp-git-plugins-card h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Forms */
+.form-table th {
+    width: 200px;
+    padding: 20px 10px 20px 0;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+/* Tables */
+.wp-list-table {
+    margin-top: 10px;
+}
+
+.wp-list-table th {
+    font-weight: 600;
+}
+
+.wp-list-table .column-actions {
+    width: 150px;
+    text-align: right;
+}
+
+
+/* Status indicators */
+.status-active {
+    color: #46b450;
+}
+
+.status-inactive {
+    color: #a00;
+}
+
+.status-not-installed {
+    color: #666;
+}
+
+.update-available {
+    color: #d63638;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .wp-git-plugins-container {
+        flex-direction: column;
+    }
+    
+    .wp-git-plugins-sidebar {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* Notices */
+.notice {
+    margin: 5px 0 15px;
+}
+
+/* Spinner */
+.spinner {
+    float: none;
+    margin-top: 0;
+}
+
+/* Icons */
+.dashicons {
+    vertical-align: middle;
+}
+
+/* Action buttons */
+.actions {
+    white-space: nowrap;
+}
+
+.actions .button {
+    margin: 0 2px;
+    padding: 0 5px;
+    height: auto;
+}
+
+/* Plugin info */
+.plugin-info {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* Tabs */
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.nav-tab {
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    margin-right: 5px;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #555;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: -1px;
+}
+
+.nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    color: #000;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* GitHub token help */
+.github-token-help {
+    margin-top: 20px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #2271b1;
+}
+
+.github-token-help h3 {
+    margin-top: 0;
+}
+
+.github-token-help ol {
+    margin-left: 20px;
+}
+
+/* Card header */
+.wp-git-plugins-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
