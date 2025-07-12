@@ -39,6 +39,10 @@ class WP_Git_Plugins_Repository {
         if (is_wp_error($repo_data)) {
             return $repo_data;
         }
+        // If no branch is set, default to 'main'
+        if (empty($branch)) {
+            $branch = 'main';
+        }
         
         $repository = [
             'url' => $repo_data['url'],
