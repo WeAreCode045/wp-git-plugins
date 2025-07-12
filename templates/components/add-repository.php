@@ -21,17 +21,6 @@ if (!defined('ABSPATH')) {
                 </td>
             </tr>
             <tr>
-                <th scope="row">
-                    <label for="repo-branch"><?php esc_html_e('Branch', 'wp-git-plugins'); ?></label>
-                </th>
-                <td>
-                    <select name="repo_branch" id="repo-branch" class="regular-text">
-                        <option value=""><?php esc_html_e('Loading branches...', 'wp-git-plugins'); ?></option>
-                    </select>
-                    <p class="description"><?php esc_html_e('Select the branch to install', 'wp-git-plugins'); ?></p>
-                </td>
-            </tr>
-            <tr>
                 <th scope="row"><?php esc_html_e('Private Repository', 'wp-git-plugins'); ?></th>
                 <td>
                     <label for="is-private">
