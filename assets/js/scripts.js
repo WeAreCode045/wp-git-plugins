@@ -2,8 +2,15 @@ jQuery(document).ready(function($) {
     // Branch change UI logic for repo list
     $('.wp-git-plugins-container').on('click', '.change-branch-btn', function(e) {
         e.preventDefault();
-        const repoRow = $(this).closest('.repo-row');
-        repoRow.find('.branch-select').toggle();
+        // Try to find the branch select next to the button
+        const branchSelect = $(this).siblings('.branch-select');
+        if (branchSelect.length) {
+            branchSelect.toggle();
+        } else {
+            // Fallback: find in parent .repo-row
+            const repoRow = $(this).closest('.repo-row');
+            repoRow.find('.branch-select').toggle();
+        }
     });
 
     // Handle branch selection and change
