@@ -123,6 +123,8 @@ class WP_Git_Plugins_Admin {
         add_action('wp_ajax_wp_git_plugins_change_branch', array($this, 'ajax_change_branch'));
         add_action('wp_ajax_wp_git_plugins_get_branches', array($this, 'ajax_get_branches'));
         add_action('wp_ajax_wp_git_plugins_add_repo', array($this, 'ajax_add_repo'));
+        add_action('wp_ajax_wp_git_plugins_clear_log', array('WP_Git_Plugins_Debug', 'ajax_clear_log'));
+        add_action('wp_ajax_wp_git_plugins_check_rate_limit', array('WP_Git_Plugins_Debug', 'ajax_check_rate_limit'));
         
         // Public AJAX actions
         add_action('wp_ajax_nopriv_wp_git_plugins_check_updates', array($this, 'ajax_check_updates_public'));
@@ -300,7 +302,8 @@ class WP_Git_Plugins_Admin {
             ];
             $result = $this->repository->change_repository_branch($repo_data, $branch);
             if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
+                $error_message = method_exists($result, 'get_error_message') ? $result->get_error_message() : __('Unknown error occurred.', 'wp-git-plugins');
+                throw new Exception($error_message);
             }
             $updated_repo = $this->repository->get_local_repository($repo_id);
             wp_send_json_success([
@@ -338,7 +341,7 @@ class WP_Git_Plugins_Admin {
             }
             $result = $this->repository->add_repository($repo_url, $branch);
             if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
+                throw new Exception(is_object($result) && method_exists($result, 'get_error_message') ? $result->get_error_message() : __('Unknown error occurred.', 'wp-git-plugins'));
             }
             $added_repo = $this->repository->get_local_repository($result);
             if (!$added_repo) {
@@ -423,7 +426,7 @@ class WP_Git_Plugins_Admin {
             $result = activate_plugin($plugin_slug);
             
             if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
+                throw new Exception(is_object($result) && method_exists($result, 'get_error_message') ? $result->get_error_message() : __('Unknown error occurred.', 'wp-git-plugins'));
             }
             
             wp_send_json_success(['message' => __('Plugin activated successfully.', 'wp-git-plugins')]);

@@ -32,6 +32,10 @@ if (!defined('ABSPATH')) {
                     <p class="description">
                         <?php esc_html_e('Enter the branch name (default: main)', 'wp-git-plugins'); ?>
                     </p>
+                    <label for="repo-private" style="display:block; margin-top:10px;">
+                        <input type="checkbox" name="repo_private" id="repo-private" value="1">
+                        <?php esc_html_e('This repository is private', 'wp-git-plugins'); ?>
+                    </label>
                 </td>
             </tr>
         </table>

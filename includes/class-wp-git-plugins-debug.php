@@ -87,6 +87,70 @@ class WP_Git_Plugins_Debug {
         self::log_error($error_message, $errfile, $errline, function_exists('wp_debug_backtrace_summary') ? wp_debug_backtrace_summary() : '');
         return false;
     }
+
+    /**
+     * AJAX: Clear log/history
+     */
+    public static function ajax_clear_log() {
+        check_ajax_referer('wp_git_plugins_debug_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-git-plugins'));
+            return;
+        }
+        $log_type = isset($_POST['log_type']) ? sanitize_text_field($_POST['log_type']) : '';
+        switch ($log_type) {
+            case 'history':
+                update_option('wp_git_plugins_history', array());
+                break;
+            case 'error-log':
+                update_option('wp_git_plugins_error_log', array());
+                break;
+            case 'console-log':
+                update_option('wp_git_plugins_console_log', array());
+                break;
+            default:
+                wp_send_json_error(__('Invalid log type.', 'wp-git-plugins'));
+                return;
+        }
+        wp_send_json_success();
+    }
+
+    /**
+     * AJAX: Check GitHub rate limit
+     */
+    public static function ajax_check_rate_limit() {
+        check_ajax_referer('wp_git_plugins_debug_nonce', 'nonce');
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('You do not have permission to perform this action.', 'wp-git-plugins'));
+            return;
+        }
+        $settings = get_option('wp_git_plugins_settings', array());
+        $github_token = isset($settings['github_token']) ? $settings['github_token'] : '';
+        if (empty($github_token)) {
+            wp_send_json_error(__('GitHub token not configured.', 'wp-git-plugins'));
+            return;
+        }
+        $response = wp_remote_get('https://api.github.com/rate_limit', array(
+            'headers' => array(
+                'Authorization' => 'token ' . $github_token,
+                'Accept' => 'application/vnd.github.v3+json',
+            ),
+        ));
+        if (is_wp_error($response)) {
+            wp_send_json_error($response->get_error_message());
+            return;
+        }
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        if (isset($body['resources']['core'])) {
+            wp_send_json_success(array(
+                'limit' => $body['resources']['core']['limit'],
+                'remaining' => $body['resources']['core']['remaining'],
+                'reset' => $body['resources']['core']['reset'],
+            ));
+        } else {
+            wp_send_json_error(__('Could not retrieve rate limit information.', 'wp-git-plugins'));
+        }
+    }
 }
 
 // Set the error handler

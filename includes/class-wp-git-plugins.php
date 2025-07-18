@@ -53,15 +53,6 @@ class WP_Git_Plugins {
         // Handle form submissions
         $this->loader->add_action('admin_post_wp_git_plugins_add_repo', $this, 'handle_form_submissions');
         
-        // AJAX handlers
-        $this->loader->add_action('wp_ajax_wp_git_plugins_install', $this, 'handle_ajax_requests');
-        $this->loader->add_action('wp_ajax_wp_git_plugins_activate', $this, 'handle_ajax_requests');
-        $this->loader->add_action('wp_ajax_wp_git_plugins_deactivate', $this, 'handle_ajax_requests');
-        $this->loader->add_action('wp_ajax_wp_git_plugins_delete', $this, 'handle_ajax_requests');
-        $this->loader->add_action('wp_ajax_wp_git_plugins_check_updates', $this, 'handle_ajax_requests');
-        $this->loader->add_action('wp_ajax_wp_git_plugins_get_branches', $this, 'handle_ajax_requests');
-        
-      
         // Add plugin action links
         $this->loader->add_filter('plugin_action_links_' . WP_GIT_PLUGINS_BASENAME, $plugin_admin, 'add_action_links');
     }
@@ -92,11 +83,6 @@ class WP_Git_Plugins {
         return $this->version;
     }
     
-    /**
-     * Handle AJAX requests
-     *
-     * @since 1.0.0
-     */
     /**
      * Handle form submissions
      *
@@ -133,141 +119,5 @@ class WP_Git_Plugins {
             wp_redirect(add_query_arg('error', urlencode($e->getMessage()), wp_get_referer()));
             exit;
         }
-    }
-
-    public function handle_ajax_requests() {
-        // Verify nonce and permissions
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'wp_git_plugins_ajax')) {
-            wp_send_json_error(['message' => __('Invalid nonce', 'wp-git-plugins')], 403);
-        }
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(['message' => __('Insufficient permissions', 'wp-git-plugins')], 403);
-        }
-        
-        $action = isset($_POST['action']) ? $_POST['action'] : '';
-        $data = isset($_POST['data']) ? $_POST['data'] : [];
-        
-        try {
-            switch ($action) {
-                case 'wp_git_plugins_install':
-                    // Handle installation
-                    $result = $this->repository->install_plugin($data);
-                    wp_send_json_success($result);
-                    break;
-                    
-                case 'wp_git_plugins_activate':
-                    // Handle activation
-                    $result = $this->repository->activate_plugin($data);
-                    wp_send_json_success($result);
-                    break;
-                    
-                case 'wp_git_plugins_deactivate':
-                    // Handle deactivation
-                    $result = $this->repository->deactivate_plugin($data);
-                    wp_send_json_success($result);
-                    break;
-                    
-                case 'wp_git_plugins_delete':
-                    // Handle deletion
-                    $result = $this->repository->delete_plugin($data);
-                    wp_send_json_success($result);
-                    break;
-                    
-                case 'wp_git_plugins_check_updates':
-                    // Handle update check
-                    $result = $this->repository->check_updates($data);
-                    wp_send_json_success($result);
-                    break;
-                    
-                case 'wp_git_plugins_get_branches':
-                    // Handle branch listing
-                    $result = $this->repository->get_branches($data);
-                    wp_send_json_success($result);
-                    break;
-                    
-                default:
-                    wp_send_json_error(['message' => __('Invalid action', 'wp-git-plugins')], 400);
-            }
-        } catch (Exception $e) {
-            wp_send_json_error(['message' => $e->getMessage()], 400);
-        }
-    }
-}
-
-// Add to your main plugin file or AJAX handler
-
-// Register AJAX actions
-add_action('wp_ajax_wp_git_plugins_clear_log', 'wp_git_plugins_clear_log_callback');
-add_action('wp_ajax_wp_git_plugins_check_rate_limit', 'wp_git_plugins_check_rate_limit_callback');
-
-// Clear log/history
-function wp_git_plugins_clear_log_callback() {
-    check_ajax_referer('wp_git_plugins_debug_nonce', 'nonce');
-    
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(__('You do not have permission to perform this action.', 'wp-git-plugins'));
-        return;
-    }
-    
-    $log_type = isset($_POST['log_type']) ? sanitize_text_field($_POST['log_type']) : '';
-    
-    switch ($log_type) {
-        case 'history':
-            update_option('wp_git_plugins_history', array());
-            break;
-        case 'error-log':
-            update_option('wp_git_plugins_error_log', array());
-            break;
-        case 'console-log':
-            update_option('wp_git_plugins_console_log', array());
-            break;
-        default:
-            wp_send_json_error(__('Invalid log type.', 'wp-git-plugins'));
-            return;
-    }
-    
-    wp_send_json_success();
-}
-
-// Check GitHub rate limit
-function wp_git_plugins_check_rate_limit_callback() {
-    check_ajax_referer('wp_git_plugins_debug_nonce', 'nonce');
-    
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error(__('You do not have permission to perform this action.', 'wp-git-plugins'));
-        return;
-    }
-    
-    $settings = get_option('wp_git_plugins_settings', array());
-    $github_token = isset($settings['github_token']) ? $settings['github_token'] : '';
-    
-    if (empty($github_token)) {
-        wp_send_json_error(__('GitHub token not configured.', 'wp-git-plugins'));
-        return;
-    }
-    
-    $response = wp_remote_get('https://api.github.com/rate_limit', array(
-        'headers' => array(
-            'Authorization' => 'token ' . $github_token,
-            'Accept' => 'application/vnd.github.v3+json',
-        ),
-    ));
-    
-    if (is_wp_error($response)) {
-        wp_send_json_error($response->get_error_message());
-        return;
-    }
-    
-    $body = json_decode(wp_remote_retrieve_body($response), true);
-    
-    if (isset($body['resources']['core'])) {
-        wp_send_json_success(array(
-            'limit' => $body['resources']['core']['limit'],
-            'remaining' => $body['resources']['core']['remaining'],
-            'reset' => $body['resources']['core']['reset'],
-        ));
-    } else {
-        wp_send_json_error(__('Could not retrieve rate limit information.', 'wp-git-plugins'));
     }
 }
