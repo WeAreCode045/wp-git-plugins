@@ -293,7 +293,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
-                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                nonce: wpGitPlugins.ajax_nonce,
                 repo_id: repoId,
                 gh_owner: ghOwner,
                 gh_name: ghName
