@@ -43,6 +43,10 @@ if (!defined('ABSPATH')) {
                 <th><?php esc_html_e('Plugin Version', 'wp-git-plugins'); ?></th>
                 <td><?php echo esc_html(WP_GIT_PLUGINS_VERSION); ?></td>
             </tr>
+             <tr>
+            <td><strong>PHP Display Errors:</strong></td>
+            <td><?php echo esc_html(ini_get('display_errors')); ?></td>
+        </tr>
         </tbody>
     </table>
 </div>
