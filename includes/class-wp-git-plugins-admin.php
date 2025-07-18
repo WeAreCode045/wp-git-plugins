@@ -96,8 +96,9 @@ class WP_Git_Plugins_Admin {
             wp_send_json_error(['message' => __('Invalid request', 'wp-git-plugins')], 400);
         }
 
-        // Verify nonce
-        if (!isset($_REQUEST['nonce']) || !wp_verify_nonce($_REQUEST['nonce'], 'wp_git_plugins_ajax')) {
+        // Accept both _ajax_nonce and nonce for compatibility
+        $nonce = isset($_REQUEST['_ajax_nonce']) ? $_REQUEST['_ajax_nonce'] : (isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '');
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'wp_git_plugins_ajax')) {
             wp_send_json_error(['message' => __('Security check failed', 'wp-git-plugins')], 403);
         }
 
