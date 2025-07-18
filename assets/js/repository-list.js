@@ -223,58 +223,7 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Fix AJAX URL and nonce for branch actions
-    $(document).on('change', '.branch-selector', function() {
-        var $select = $(this);
-        var $container = $select.closest('.branch-selector-container');
-        var $spinner = $container.find('.branch-spinner');
-        var repoId = $container.data('repo-id');
-        var ghOwner = $container.data('gh-owner');
-        var ghName = $container.data('gh-name');
-        var currentBranch = $select.data('current-branch');
-        var newBranch = $select.val();
-        var nonce = $select.data('nonce');
-        if (currentBranch === newBranch) {
-            return;
-        }
-        if (!confirm('Are you sure you want to switch to branch "' + newBranch + '"? This will delete the current plugin files and install the selected branch.')) {
-            $select.val(currentBranch);
-            return;
-        }
-        $spinner.css('visibility', 'visible').addClass('is-active');
-        $select.prop('disabled', true);
-        $.ajax({
-            url: wpGitPlugins.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'wp_git_plugins_switch_branch',
-                _ajax_nonce: wpGitPlugins.ajax_nonce,
-                repo_id: repoId,
-                new_branch: newBranch
-            },
-            success: function(response) {
-                if (response.success) {
-                    $select.data('current-branch', newBranch);
-                    showNotice('success', 'Branch switched successfully! Reloading...');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1200);
-                } else {
-                    $select.val(currentBranch);
-                    showNotice('error', 'Failed to switch branch: ' + (response.data && response.data.message || 'Unknown error'));
-                }
-            },
-            error: function(xhr, status, error) {
-                $select.val(currentBranch);
-                showNotice('error', 'Failed to switch branch: ' + error);
-            },
-            complete: function() {
-                $spinner.css('visibility', 'hidden').removeClass('is-active');
-                $select.prop('disabled', false);
-            }
-        });
-    });
-
+       // Load branches when branch selector is clicked
     $(document).on('focus', '.branch-selector', function() {
         var $select = $(this);
         var $container = $select.closest('.branch-selector-container');
@@ -288,17 +237,15 @@ jQuery(document).ready(function($) {
         var ghName = $container.data('gh-name');
         var currentBranch = $select.data('current-branch');
         var nonce = $select.data('nonce');
-        var repoUrl = $container.data('repo-url');
         $.ajax({
-            url: wpGitPlugins.ajax_url,
+            url: ajaxurl,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
-                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                nonce: nonce,
                 repo_id: repoId,
                 gh_owner: ghOwner,
-                gh_name: ghName,
-                repo_url: repoUrl
+                gh_name: ghName
             },
             success: function(response) {
                 if (response.success && response.data && response.data.branches) {
