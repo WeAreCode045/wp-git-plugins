@@ -184,9 +184,9 @@ class WP_Git_Plugins_Repository {
 public function ajax_get_branches() {
     check_ajax_referer('wp_git_plugins_nonce', 'nonce');
     
-    if (!is_user_logged_in()) {
-        wp_send_json_error(array('message' => __('You must be logged in to view branches.', 'wp-git-plugins')));
-    }
+if (!current_user_can('edit_plugins')) {
+    wp_send_json_error(array('message' => __('You do not have permission to view branches.', 'wp-git-plugins')));
+}
 
         
         $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
