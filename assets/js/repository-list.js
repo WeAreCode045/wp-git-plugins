@@ -288,6 +288,7 @@ jQuery(document).ready(function($) {
         var ghName = $container.data('gh-name');
         var currentBranch = $select.data('current-branch');
         var nonce = $select.data('nonce');
+        var repoUrl = $container.data('repo-url');
         $.ajax({
             url: wpGitPlugins.ajax_url,
             type: 'POST',
@@ -296,7 +297,8 @@ jQuery(document).ready(function($) {
                 nonce: wpGitPlugins.ajax_nonce,
                 repo_id: repoId,
                 gh_owner: ghOwner,
-                gh_name: ghName
+                gh_name: ghName,
+                repo_url: repoUrl
             },
             success: function(response) {
                 if (response.success && response.data && response.data.branches) {
