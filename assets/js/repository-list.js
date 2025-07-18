@@ -72,7 +72,158 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Handle branch selection
+    // Handle update plugin action
+    $('.update-plugin').on('click', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var repoId = $button.data('id');
+        var pluginSlug = $button.data('plugin');
+        $button.prop('disabled', true).find('.spinner').show();
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_update_repository',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId,
+                plugin_slug: pluginSlug
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || 'Plugin updated successfully.');
+                    setTimeout(function() { location.reload(); }, 1200);
+                } else {
+                    showNotice('error', response.data.message || 'Failed to update plugin.');
+                    $button.prop('disabled', false).find('.spinner').hide();
+                }
+            },
+            error: function() {
+                showNotice('error', 'Failed to update plugin.');
+                $button.prop('disabled', false).find('.spinner').hide();
+            }
+        });
+    });
+
+    // Handle check version action
+    $('.check-version').on('click', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var repoId = $button.data('id');
+        $button.prop('disabled', true).find('.spinner').show();
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_check_update',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || 'Checked for updates.');
+                } else {
+                    showNotice('error', response.data.message || 'Failed to check for updates.');
+                }
+                $button.prop('disabled', false).find('.spinner').hide();
+            },
+            error: function() {
+                showNotice('error', 'Failed to check for updates.');
+                $button.prop('disabled', false).find('.spinner').hide();
+            }
+        });
+    });
+
+    // Handle activate plugin action
+    $('.activate-plugin').on('click', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var pluginSlug = $button.data('plugin');
+        $button.prop('disabled', true);
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_activate_plugin',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                plugin_slug: pluginSlug
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || 'Plugin activated.');
+                    setTimeout(function() { location.reload(); }, 1200);
+                } else {
+                    showNotice('error', response.data.message || 'Failed to activate plugin.');
+                    $button.prop('disabled', false);
+                }
+            },
+            error: function() {
+                showNotice('error', 'Failed to activate plugin.');
+                $button.prop('disabled', false);
+            }
+        });
+    });
+
+    // Handle deactivate plugin action
+    $('.deactivate-plugin').on('click', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var pluginSlug = $button.data('plugin');
+        $button.prop('disabled', true);
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_deactivate_plugin',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                plugin_slug: pluginSlug
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || 'Plugin deactivated.');
+                    setTimeout(function() { location.reload(); }, 1200);
+                } else {
+                    showNotice('error', response.data.message || 'Failed to deactivate plugin.');
+                    $button.prop('disabled', false);
+                }
+            },
+            error: function() {
+                showNotice('error', 'Failed to deactivate plugin.');
+                $button.prop('disabled', false);
+            }
+        });
+    });
+
+    // Handle install plugin action
+    $('.install-plugin').on('click', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var repoId = $button.data('repo-id');
+        $button.prop('disabled', true);
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_add_repo',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || 'Plugin installed.');
+                    setTimeout(function() { location.reload(); }, 1200);
+                } else {
+                    showNotice('error', response.data.message || 'Failed to install plugin.');
+                    $button.prop('disabled', false);
+                }
+            },
+            error: function() {
+                showNotice('error', 'Failed to install plugin.');
+                $button.prop('disabled', false);
+            }
+        });
+    });
+
+    // Fix AJAX URL and nonce for branch actions
     $(document).on('change', '.branch-selector', function() {
         var $select = $(this);
         var $container = $select.closest('.branch-selector-container');
@@ -93,11 +244,11 @@ jQuery(document).ready(function($) {
         $spinner.css('visibility', 'visible').addClass('is-active');
         $select.prop('disabled', true);
         $.ajax({
-            url: ajaxurl,
+            url: wpGitPlugins.ajax_url,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_switch_branch',
-                nonce: nonce,
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
                 repo_id: repoId,
                 new_branch: newBranch
             },
@@ -124,7 +275,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Load branches when branch selector is clicked
     $(document).on('focus', '.branch-selector', function() {
         var $select = $(this);
         var $container = $select.closest('.branch-selector-container');
@@ -139,11 +289,11 @@ jQuery(document).ready(function($) {
         var currentBranch = $select.data('current-branch');
         var nonce = $select.data('nonce');
         $.ajax({
-            url: ajaxurl,
+            url: wpGitPlugins.ajax_url,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
-                nonce: nonce,
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
                 repo_id: repoId,
                 gh_owner: ghOwner,
                 gh_name: ghName

@@ -510,7 +510,7 @@ class WP_Git_Plugins_Admin {
             }
             $result = $this->repository->delete_local_repository($repo_id);
             if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
+                throw new Exception(is_object($result) && method_exists($result, 'get_error_message') ? $result->get_error_message() : __('Unknown error occurred.', 'wp-git-plugins'));
             }
             if (!empty($repo['plugin_slug'])) {
                 $this->delete_plugin_files($repo['plugin_slug']);
