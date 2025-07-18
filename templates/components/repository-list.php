@@ -61,38 +61,29 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                     }
                     if ( empty( $repo['url'] ) && ! empty( $repo['owner'] ) && ! empty( $repo['name'] ) ) {
                         $repo['url'] = sprintf( 'https://github.com/%s/%s', $repo['owner'], $repo['name'] );
-                    } 
-                    // First try the default pattern: repo-name/repo-name.php
-                    $plugin_slug = $repo['name'] . '/' . $repo['name'] . '.php';
-                    $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_slug;
-                    $is_plugin_installed = file_exists($plugin_path);
-                    
-                    // If not found, search through all plugins to find a matching directory
-                    if (!$is_plugin_installed) {
-                        $possible_dirs = [
-                            $repo['name'], // Exact match
-                            $repo['name'] . '-main', // GitHub default branch download
-                            str_replace('_', '-', $repo['name']), // Handle underscores
-                            str_replace('-', '_', $repo['name']) // Handle dashes
-                        ];
-                        
-                        foreach ($all_plugins as $potential_slug => $plugin_data) {
-                            $plugin_dir = dirname($potential_slug);
-                            $plugin_dir_lower = strtolower($plugin_dir);
-                            $repo_name_lower = strtolower($repo['name']);
-                            
-                            // Check for exact match or variations with -main suffix
-                            if (in_array($plugin_dir_lower, array_map('strtolower', $possible_dirs)) || 
-                                $plugin_dir_lower === $repo_name_lower . '-main' ||
-                                strpos($plugin_dir_lower, $repo_name_lower) === 0) { // Starts with repo name
-                                $plugin_slug = $potential_slug;
-                                $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_slug;
-                                $is_plugin_installed = true;
-                                break;
-                            }
+                    }
+                    // Find the correct plugin slug using get_plugins()
+                    $all_plugins = get_plugins();
+                    $plugin_slug = '';
+                    foreach ($all_plugins as $potential_slug => $plugin_data) {
+                        $plugin_dir = dirname($potential_slug);
+                        $plugin_dir_lower = strtolower($plugin_dir);
+                        $repo_name_lower = strtolower($repo['name']);
+                        if (
+                            $plugin_dir_lower === $repo_name_lower ||
+                            $plugin_dir_lower === $repo_name_lower . '-main' ||
+                            strpos($plugin_dir_lower, $repo_name_lower) === 0
+                        ) {
+                            $plugin_slug = $potential_slug;
+                            break;
                         }
                     }
-                    
+                    // Fallback to default pattern if not found
+                    if (empty($plugin_slug)) {
+                        $plugin_slug = $repo['name'] . '/' . $repo['name'] . '.php';
+                    }
+                    $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_slug;
+                    $is_plugin_installed = file_exists($plugin_path);
                     $is_plugin_active = $is_plugin_installed ? is_plugin_active($plugin_slug) : false;
                 ?>
                     <tr class="repo-row" data-id="<?php echo esc_attr($repo['id']); ?>">
