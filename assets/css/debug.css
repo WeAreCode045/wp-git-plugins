@@ -1,0 +1,150 @@
+/* Debug Page Styles */
+.wp-git-plugins-debug .nav-tab-wrapper {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0;
+}
+
+.wp-git-plugins-debug .nav-tab {
+    margin-left: 0;
+    margin-right: 5px;
+    margin-bottom: -1px;
+    padding: 8px 15px;
+    font-size: 14px;
+    line-height: 1.71428571;
+    font-weight: 600;
+}
+
+.wp-git-plugins-debug .nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+}
+
+.wp-git-plugins-debug .tab-pane {
+    display: none;
+    padding: 15px 0;
+}
+
+.wp-git-plugins-debug .tab-pane.active {
+    display: block;
+}
+
+/* History styles */
+.action-added {
+    color: #46b450;
+    font-weight: 600;
+}
+
+.action-updated {
+    color: #ffb900;
+    font-weight: 600;
+}
+
+.action-deleted {
+    color: #dc3232;
+    font-weight: 600;
+}
+
+/* Error log styles */
+.error-message {
+    color: #dc3232;
+    margin-bottom: 5px;
+}
+
+.error-trace {
+    background: #f8f8f8;
+    border: 1px solid #e5e5e5;
+    padding: 10px;
+    margin-top: 5px;
+    overflow-x: auto;
+}
+
+.error-trace pre {
+    margin: 0;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+.toggle-trace {
+    font-size: 11px;
+    cursor: pointer;
+}
+
+/* Console log styles */
+.console-log-container .log-type {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.log-type-log {
+    background-color: #e5f5fa;
+    color: #00a0d2;
+}
+
+.log-type-warning {
+    background-color: #fff8e5;
+    color: #dba617;
+}
+
+.log-type-error {
+    background-color: #fbeaea;
+    color: #dc3232;
+}
+
+/* Plugin info styles */
+.plugin-info {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.plugin-info h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.plugin-info p {
+    margin: 0 0 10px;
+}
+
+.plugin-info strong {
+    display: inline-block;
+    min-width: 120px;
+}
+
+/* Status indicators */
+.status-high {
+    color: #46b450;
+}
+
+.status-low {
+    color: #ffb900;
+}
+
+.status-critical {
+    color: #dc3232;
+    font-weight: 600;
+}
+
+/* Responsive styles */
+@media screen and (max-width: 782px) {
+    .wp-git-plugins-debug .tablenav .actions {
+        float: none;
+        margin-bottom: 10px;
+    }
+    
+    .wp-git-plugins-debug .tablenav-pages {
+        float: none;
+        margin-top: 10px;
+    }
+    
+    .plugin-info strong {
+        display: block;
+        margin-bottom: 3px;
+    }
+}

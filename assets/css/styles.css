@@ -1,0 +1,718 @@
+/* Main Layout */
+.wp-git-plugins-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.wp-git-plugins-main {
+    flex: 1;
+    max-width: 70%;
+}
+
+.wp-git-plugins-sidebar {
+    width: 30%;
+}
+
+.wp-git-plugins-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.wp-git-plugins-card h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Forms */
+.form-table th {
+    width: 30%;
+    padding: 20px 10px 20px 0;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+.form-table .regular-text {
+    width: 100%;
+}
+
+/* Update Count Badge */
+.update-count {
+    display: inline-block;
+    background: #d63638;
+    color: #fff;
+    font-size: 9px;
+    line-height: 17px;
+    font-weight: 600;
+    margin: 1px 0 0 2px;
+    vertical-align: top;
+    padding: 0 6px;
+    border-radius: 10px;
+    z-index: 26;
+    position: relative;
+    top: -2px;
+}
+
+/* Update Results */
+#update-results {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+#update-results h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+#update-results-content {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#update-results .notice {
+    margin: 5px 0;
+    padding: 10px 15px;
+}
+
+#update-results .notice p {
+    margin: 0;
+}
+
+/* Tables */
+.wp-list-table {
+    margin-top: 20px;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.wp-list-table th, .wp-list-table td {
+    padding: 12px 8px;
+    vertical-align: middle;
+    text-align: left;
+}
+
+.wp-list-table th {
+    font-weight: 600;
+    border-bottom: 2px solid #c3c4c7;
+}
+
+.wp-list-table tr:nth-child(even) {
+    background-color: #f6f7f7;
+}
+
+.wp-list-table .actions {
+    white-space: nowrap;
+    text-align: right;
+}
+
+/* Update notification */
+.update-available {
+    color: #d63638;
+    font-weight: 600;
+    margin-left: 5px;
+    font-size: 0.9em;
+}
+
+.update-now {
+    color: #2271b1;
+    text-decoration: none;
+    font-size: 0.9em;
+    margin-left: 5px;
+}
+
+.update-now:hover {
+    text-decoration: underline;
+}
+
+/* Buttons */
+.button-small {
+    padding: 0 8px;
+    line-height: 1.8;
+    font-size: 12px;
+    height: auto;
+    margin: 0 2px;
+}
+
+.button-small .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    margin-top: -2px;
+}
+
+/* Loading spinner */
+.button .spinner {
+    float: none;
+    margin: 0;
+    visibility: visible;
+}
+
+/* Success state */
+.dashicons-yes {
+    color: #46b450;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin-bottom: 20px;
+    border-radius: 3px;
+}
+
+.card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #dcdcde;
+    background: #f6f7f7;
+}
+
+.card-header .title {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 16px;
+}
+
+/* Debug Page Tabs */
+.nav-tab-wrapper { 
+    margin: 0 0 20px 0;
+    border-bottom: 1px solid #dcdcde;
+    padding-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.nav-tab {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-bottom: none;
+    margin: 0 5px -1px 0;
+    padding: 8px 12px;
+    text-decoration: none;
+    color: #1d2327;
+    font-size: 13px;
+    line-height: 1.4;
+    border-radius: 4px 4px 0 0;
+    transition: none;
+    cursor: pointer;
+}
+
+.nav-tab:hover {
+    background: #f0f0f1;
+    border-color: #dcdcde;
+}
+
+.nav-tab-active,
+.nav-tab-active:hover {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    color: #2271b1;
+    font-weight: 500;
+    margin-bottom: -1px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    padding: 15px 0;
+    clear: both;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Code Block Styling */
+.code-block {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    padding: 12px;
+    max-height: 500px;
+    overflow: auto;
+    font-family: 'Courier 10 Pitch', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Debug Entry Styling */
+.debug-entry {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+/* Grouped Entry Styling */
+.debug-entry.grouped-entry {
+    border-left: 4px solid #2271b1;
+}
+
+.debug-entry .debug-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.debug-entry .debug-time {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #646970;
+    margin-right: 10px;
+}
+
+.debug-entry .debug-time .dashicons {
+    margin-right: 5px;
+}
+
+.debug-entry .entry-count {
+    margin-left: 10px;
+    padding: 2px 6px;
+    background: #f0f0f1;
+    border-radius: 10px;
+    font-size: 11px;
+    color: #50575e;
+}
+
+.debug-entry .debug-message {
+    flex: 1;
+    min-width: 200px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.debug-entry .toggle-details {
+    margin-left: auto;
+}
+
+.debug-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+}
+
+.debug-entry-detail {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #f9f9f9;
+    border-radius: 3px;
+    border-left: 3px solid #c3c4c7;
+}
+
+.debug-entry-detail .debug-time {
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.debug-entry-detail .debug-message {
+    margin-left: 20px;
+}
+
+.debug-entry:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.debug-time {
+    color: #50575e;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.debug-message {
+    font-weight: 600;
+    color: #1d2327;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.debug-data {
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    padding: 8px 12px;
+    font-family: 'Courier 10 Pitch', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 300px;
+    overflow: auto;
+}
+
+/* Responsive Layout */
+@media screen and (max-width: 960px) {
+    .wp-git-plugins-container {
+        flex-direction: column;
+    }
+    
+    .wp-git-plugins-sidebar {
+        width: 100%;
+    }
+}
+
+.nav-tab { 
+    margin-right: 5px; 
+}
+
+.nav-tab-active { 
+    background: #f1f1f1; 
+    border-bottom: 1px solid #f1f1f1; 
+    margin-bottom: -1px; 
+}
+
+.tab-content { 
+    display: none; 
+}
+
+.tab-content.active { 
+    display: block; 
+}
+
+.clear-form { 
+    margin: 10px 0; 
+}
+
+.code-block { 
+    background: #f5f5f5; 
+    padding: 15px; 
+    border: 1px solid #ddd; 
+    max-height: 400px; 
+    overflow: auto; 
+    font-family: monospace; 
+    white-space: pre-wrap; 
+    margin-top: 15px;
+    border-radius: 3px;
+}
+
+.wp-list-table th {
+    font-weight: 600;
+}
+
+.wp-list-table .column-actions {
+    width: 150px;
+    text-align: right;
+}
+
+
+/* Status indicators */
+.status-active {
+    color: #46b450;
+}
+
+.status-inactive {
+    color: #a00;
+}
+
+.status-not-installed {
+    color: #666;
+}
+
+.update-available {
+    color: #d63638;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .wp-git-plugins-container {
+        flex-direction: column;
+    }
+    
+    .wp-git-plugins-sidebar {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* Notices */
+.notice {
+    margin: 5px 0 15px;
+}
+
+/* Spinner */
+.spinner {
+    float: none;
+    margin-top: 0;
+}
+
+/* Icons */
+.dashicons {
+    vertical-align: middle;
+}
+
+/* Action buttons */
+.actions {
+    white-space: nowrap;
+}
+
+.actions .button {
+    margin: 0 2px;
+    padding: 0 5px;
+    height: auto;
+}
+
+/* Plugin info */
+.plugin-info {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* Tabs */
+.nav-tab-wrapper {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+}
+
+.nav-tab {
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    margin-right: 5px;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #555;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: -1px;
+}
+
+.nav-tab-active {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+    color: #000;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* GitHub token help */
+.github-token-help {
+    margin-top: 20px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #2271b1;
+}
+
+.github-token-help h3 {
+    margin-top: 0;
+}
+
+.github-token-help ol {
+    margin-left: 20px;
+}
+
+/* Card header */
+.wp-git-plugins-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.wp-git-plugins-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin: 20px 0;
+}
+
+.wp-git-plugins-card-header {
+    border-bottom: 1px solid #dcdcde;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.wp-git-plugins-card h2 {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.wp-git-plugins-card .button {
+    margin-left: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.wp-git-plugins-card .button .dashicons {
+    line-height: 1;
+    margin: 0;
+}
+
+.update-count {
+    display: inline-block;
+    background: #d63638;
+    color: #fff;
+    border-radius: 10px;
+    padding: 2px 8px;
+    font-size: 11px;
+    margin-left: 5px;
+    line-height: 1.4;
+}
+
+.check-all-spinner {
+    margin-left: 10px !important;
+    float: none;
+    visibility: visible !important;
+}
+
+
+.actions .button {
+        margin: 0 2px;
+        padding: 0 5px;
+        height: auto;
+        background: #2271b1;
+        color: #ffffff;
+        border: 0px;
+    }
+
+.repo-actions .button {
+    margin-right: 5px;
+}
+
+.repo-actions .button:last-child {
+    margin-right: 0;
+}
+
+.plugin-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.repo-name {
+    width: 100%;
+    display:flex;
+    align-items:flex-start;
+    gap: 5px;
+}
+
+.plugin-status.active {
+    background: #e6f4ea;
+    color: #00a32a;
+}
+
+.plugin-status.inactive {
+    background: #f0f0f1;
+    color: #646970;
+}
+
+.plugin-status.not-installed {
+    background: #f0f0f1;
+    color: #d63638;
+}
+
+.branch-selector {
+    max-width: 100px;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.branch-selector select {
+    max-width: 100px;
+}
+
+/* Update available styling */
+tr.update-available {
+    background-color: #fff8e5 !important;
+}
+
+tr.update-available .local-version {
+    font-weight: 600;
+}
+
+/* Spinner styles */
+.spinner {
+    visibility: hidden;
+    display: inline-block;
+    background-image: url('./wp-admin/images/spinner-2x.gif');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px 20px;
+    float: none;
+    opacity: 0.8;
+    filter: grayscale(100%) brightness(0.5);
+    margin: 0;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    display: none;
+}
+
+/* Responsive table */
+@media screen and (max-width: 782px) {
+    .wp-list-table th, 
+    .wp-list-table td {
+        padding: 8px 10px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .action-buttons .button {
+        width: 100%;
+        text-align: left;
+        margin-left: 0 !important;
+    }
+}
+
+table.fixed {
+    table-layout: auto;
+}
