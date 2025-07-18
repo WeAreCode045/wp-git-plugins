@@ -294,7 +294,7 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
-                nonce: wpGitPlugins.ajax_nonce,
+                nonce: wpGitPlugins.nonce,
                 repo_id: repoId,
                 gh_owner: ghOwner,
                 gh_name: ghName,
