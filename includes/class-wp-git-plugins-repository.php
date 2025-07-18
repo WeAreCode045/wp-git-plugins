@@ -180,12 +180,14 @@ class WP_Git_Plugins_Repository {
     /**
      * AJAX handler to get branches for a repository
      */
-    public function ajax_get_branches() {
-        check_ajax_referer('wp_git_plugins_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'wp-git-plugins')));
-        }
+
+public function ajax_get_branches() {
+    check_ajax_referer('wp_git_plugins_nonce', 'nonce');
+    
+    if (!is_user_logged_in()) {
+        wp_send_json_error(array('message' => __('You must be logged in to view branches.', 'wp-git-plugins')));
+    }
+
         
         $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
         $owner = isset($_POST['gh_owner']) ? sanitize_text_field($_POST['gh_owner']) : '';
