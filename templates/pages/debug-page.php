@@ -60,13 +60,13 @@ add_action('admin_enqueue_scripts', function($hook) {
                             
                             <div class="tab-content">
                                 <div id="history" class="tab-pane active">
-                                    <?php include_once plugin_dir_path(dirname(__FILE__)) . 'components/history.php'; ?>
+                                    <?php include_once WP_GIT_PLUGINS_DIR . 'templates/components/history.php'; ?>
                                 </div>
                                 <div id="error-log" class="tab-pane">
-                                    <?php include_once plugin_dir_path(dirname(__FILE__)) . 'components/error-log.php'; ?>
+                                    <?php include_once WP_GIT_PLUGINS_DIR . 'templates/components/error-log.php'; ?>
                                 </div>
                                 <div id="console-log" class="tab-pane">
-                                    <?php include_once plugin_dir_path(dirname(__FILE__)) . 'components/console-log.php'; ?>
+                                    <?php include_once WP_GIT_PLUGINS_DIR . 'templates/components/console-log.php'; ?>
                                 </div>
                             </div>
                         </div>
