@@ -330,33 +330,6 @@ if (!current_user_can('edit_plugins')) {
      * @param array $git_repo GitHub repository data
      * @return string|WP_Error Version number or WP_Error on failure
      */
-    public function get_github_latest_version($git_repo) {
-        $api_url = $this->get_github_api_url($git_repo['gh_owner'], $git_repo['gh_name'], 'releases/latest');
-        
-        $args = [];
-        if (!empty($this->github_token)) {
-            $args['headers'] = [
-                'Authorization' => 'token ' . $this->github_token,
-                'Accept' => 'application/vnd.github.v3+json'
-            ];
-        }
-        
-        $response = wp_remote_get($api_url, $args);
-        
-        if (is_wp_error($response)) {
-            return $response;
-        }
-        
-        $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code !== 200) {
-            return new WP_Error('github_api_error', 
-                sprintf(__('GitHub API error: %s', 'wp-git-plugins'), wp_remote_retrieve_response_message($response))
-            );
-        }
-        
-        $data = json_decode(wp_remote_retrieve_body($response), true);
-        return isset($data['tag_name']) ? ltrim($data['tag_name'], 'v') : '0.0.1';
-    }
     
     /**
      * Update the version of a local repository
@@ -394,94 +367,35 @@ if (!current_user_can('edit_plugins')) {
      * @param string $branch Branch name (default: 'main')
      * @return string|WP_Error Version string on success, WP_Error on failure
      */
-    public function get_latest_version_from_github($owner, $repo, $branch = 'main') {
-        $transient_key = 'wp_git_plugins_latest_version_' . md5($owner . $repo . $branch);
-        $cached = get_transient($transient_key);
-        
-        if (false !== $cached) {
-            return $cached;
-        }
-        
-        // Try to get version from the plugin header
-        $plugin_header_url = sprintf(
-            'https://raw.githubusercontent.com/%s/%s/%s/%s.php',
-            $owner,
-            $repo,
-            $branch,
-            $repo
-        );
-        
-        $response = wp_remote_get($plugin_header_url);
-        
-        if (!is_wp_error($response) && 200 === wp_remote_retrieve_response_code($response)) {
-            $plugin_data = get_plugin_data($response['body'], false, false);
-            
-            if (!empty($plugin_data['Version'])) {
-                $version = $plugin_data['Version'];
-                set_transient($transient_key, $version, HOUR_IN_SECONDS);
-                return $version;
-            }
-        }
-        
-        // Fallback to releases API if plugin header not found or invalid
-        $api_url = sprintf(
-            'https://api.github.com/repos/%s/%s/releases/latest',
-            $owner,
-            $repo
-        );
-        
-        if (!empty($this->github_token)) {
-            $api_url = add_query_arg('access_token', $this->github_token, $api_url);
-        }
-        
-        $response = wp_remote_get($api_url, [
-            'headers' => [
-                'Accept' => 'application/vnd.github.v3+json'
-            ]
-        ]);
-        
-        if (is_wp_error($response)) {
-            return $response;
-        }
-        
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        
-        if (isset($body['tag_name'])) {
-            $version = ltrim($body['tag_name'], 'v');
-            set_transient($transient_key, $version, HOUR_IN_SECONDS);
-            return $version;
-        }
-        
-        // If no release found, try to get the latest commit from the branch
-        $api_url = sprintf(
-            'https://api.github.com/repos/%s/%s/commits/%s',
-            $owner,
-            $repo,
-            $branch
-        );
-        
-        if (!empty($this->github_token)) {
-            $api_url = add_query_arg('access_token', $this->github_token, $api_url);
-        }
-        
-        $response = wp_remote_get($api_url, [
-            'headers' => [
-                'Accept' => 'application/vnd.github.v3+json'
-            ]
-        ]);
-        
-        if (!is_wp_error($response) && 200 === wp_remote_retrieve_response_code($response)) {
-            $commit_data = json_decode(wp_remote_retrieve_body($response), true);
-            if (isset($commit_data['sha'])) {
-                $version = substr($commit_data['sha'], 0, 7);
-                set_transient($transient_key, $version, HOUR_IN_SECONDS);
-                return $version;
-            }
-        }
-        
-        return new WP_Error('no_version_found', __('Could not determine the latest version from GitHub.', 'wp-git-plugins'));
+ 
+public function get_latest_version_from_github($owner, $repo, $branch = 'main') {
+    $transient_key = 'wp_git_plugins_latest_version_' . md5($owner . $repo . $branch);
+    $cached = get_transient($transient_key);
+    if (false !== $cached) {
+        return $cached;
     }
-    
+
+    // Fetch the plugin file from GitHub
+    $plugin_file_url = sprintf('https://raw.githubusercontent.com/%s/%s/%s/%s.php', $owner, $repo, $branch, $repo);
+    $response = wp_remote_get($plugin_file_url);
+    if (!is_wp_error($response) && 200 === wp_remote_retrieve_response_code($response)) {
+        $file_contents = wp_remote_retrieve_body($response);
+       if (preg_match('/^\\s*Version:\\s*(.+)$/mi', $file_contents, $matches)) {
+    $version = trim($matches[1]);
+    set_transient($transient_key, $version, HOUR_IN_SECONDS);
+    // Save to database
+    $repo_row = $this->db->get_repo_by_name($owner, $repo);
+    if ($repo_row && !empty($repo_row->id)) {
+        $this->db->update_repo($repo_row->id, [
+            'git_version' => $version,
+            'updated_at' => current_time('mysql')
+        ]);
+    }
+    return $version;
+}
+        }
+    }
+  
     /**
      * Check for updates for a specific repository
      * 
