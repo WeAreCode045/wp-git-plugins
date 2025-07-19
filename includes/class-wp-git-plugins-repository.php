@@ -343,8 +343,20 @@ public function get_latest_version_from_github($owner, $repo, $branch = 'main', 
         return $cached;
     }
 
-    // Fetch the plugin file from GitHub
-    $plugin_file_url = sprintf('https://raw.githubusercontent.com/%s/%s/%s/%s.php', $owner, $repo, $branch, $repo);
+    // Try to get the plugin file name from the database if available
+    $plugin_file_name = $repo;
+    if ($repo_id !== null) {
+        $repo_row = $this->db->get_repo($repo_id);
+        if ($repo_row && !empty($repo_row->plugin_slug)) {
+            // plugin_slug might be like 'my-plugin/my-plugin.php' or 'my-plugin.php'
+            $parts = explode('/', $repo_row->plugin_slug);
+            $last = end($parts);
+            if (substr($last, -4) === '.php') {
+                $plugin_file_name = substr($last, 0, -4);
+            }
+        }
+    }
+    $plugin_file_url = sprintf('https://raw.githubusercontent.com/%s/%s/%s/%s.php', $owner, $repo, $branch, $plugin_file_name);
     $response = wp_remote_get($plugin_file_url);
     if (is_wp_error($response)) {
         if ($this->error_handler) {
