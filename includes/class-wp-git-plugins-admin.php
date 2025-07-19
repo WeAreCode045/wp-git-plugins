@@ -119,8 +119,6 @@ class WP_Git_Plugins_Admin {
         add_action('wp_ajax_wp_git_plugins_deactivate_plugin', array($this, 'ajax_deactivate_plugin'));
         add_action('wp_ajax_wp_git_plugins_remove_repo', array($this, 'ajax_remove_repo'));
         add_action('wp_ajax_wp_git_plugins_delete_repository', array($this, 'ajax_delete_repository'));
-        add_action('wp_ajax_wp_git_plugins_check_updates', array($this, 'ajax_check_updates'));
-        add_action('wp_ajax_wp_git_plugins_check_update', array($this, 'ajax_check_update'));
         add_action('wp_ajax_wp_git_plugins_change_branch', array($this, 'ajax_change_branch'));
         add_action('wp_ajax_wp_git_plugins_get_branches', array($this, 'ajax_get_branches'));
         add_action('wp_ajax_wp_git_plugins_add_repo', array($this, 'ajax_add_repo'));
@@ -128,7 +126,9 @@ class WP_Git_Plugins_Admin {
         add_action('wp_ajax_wp_git_plugins_check_rate_limit', array('WP_Git_Plugins_Debug', 'ajax_check_rate_limit'));
         
         // Public AJAX actions
-        add_action('wp_ajax_nopriv_wp_git_plugins_check_updates', array($this, 'ajax_check_updates_public'));
+        add_action('wp_ajax_wp_git_plugins_get_plugins', array($this, 'ajax_get_plugins'));
+        add_action('wp_ajax_wp_git_plugins_get_plugin', array($this, 'ajax_get_plugin'));
+        add_action('wp_ajax_wp_git_plugins_get_plugin_info', array($this, 'ajax_get_plugin_info'));
     }
 
     public function add_admin_menus() {
@@ -522,312 +522,146 @@ class WP_Git_Plugins_Admin {
         }
     }
 
-    /**
-     * AJAX handler for checking repository updates.
-     *
-     * @since 1.1.5
-     */
-    public function ajax_check_update() {
-        try {
-            $this->verify_ajax_request();
-            
-            if (!current_user_can('update_plugins')) {
-                wp_send_json_error(['message' => __('You do not have permission to check for updates.', 'wp-git-plugins')]);
-            }
-            
-            $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
-            $repo = $this->repository->get_local_repository($repo_id);
-            
-            if (!$repo) {
-                wp_send_json_error(['message' => __('Repository not found.', 'wp-git-plugins')]);
-            }
-            
-            // Get the installed version
-            $installed_version = $repo['local_version'] ?? '0.0.0';
-            
-            // Check for updates first to ensure we have the latest git_version
-            $update_check = $this->repository->check_repository_updates($repo_id);
-            if (is_wp_error($update_check)) {
-                wp_send_json_error(['message' => $update_check->get_error_message()]);
-            }
-            
-            // Refresh repo data to get the updated git_version
-            $repo = $this->repository->get_local_repository($repo_id);
-            $latest_version = $repo['git_version'] ?? '0.0.0';
-            
-            // If we still don't have a git_version, try to get it directly
-            if (empty($latest_version) || $latest_version === '0.0.0') {
-                $latest_version = $this->repository->get_latest_version_from_github(
-                    $repo['gh_owner'],
-                    $repo['gh_name'],
-                    $repo['branch'] ?? 'main'
-                );
-                
-                if (is_wp_error($latest_version)) {
-                    wp_send_json_error(['message' => $latest_version->get_error_message()]);
-                }
-                
-                // Update the git_version in the database
-                $this->repository->update_local_repo_version($repo_id, $latest_version, true);
-            }
-            
-            $update_available = version_compare($latest_version, $installed_version, '>');
-            
-            wp_send_json_success([
-                'repo_id' => $repo_id,
-                'update_available' => $update_available,
-                'current_version' => $installed_version,
-                'latest_version' => $latest_version,
-                'message' => $update_available 
-                    ? sprintf(__('Update available: %s → %s', 'wp-git-plugins'), $installed_version, $latest_version)
-                    : __('You have the latest version installed.', 'wp-git-plugins'),
-                'repo' => $repo
-            ]);
-            
-        } catch (Exception $e) {
-            error_log('WP Git Plugins - Check Update Error: ' . $e->getMessage());
-            wp_send_json_error(['message' => sprintf(__('Error checking for updates: %s', 'wp-git-plugins'), $e->getMessage())]);
-        }
-    }
+
     
-    /**
-     * AJAX handler for checking repository updates
-     *
-     * @since 1.0.0
-     */
-    public function ajax_check_repository_updates() {
-        try {
-            // Verify the AJAX request
-            $this->verify_ajax_request();
             
-            // Check user capabilities
-            if (!current_user_can('update_plugins')) {
-                throw new Exception(__('You do not have permission to check for updates.', 'wp-git-plugins'));
-            }
-            
-            // Sanitize input
-            $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
-            
-            if (empty($repo_id)) {
-                throw new Exception(__('Repository ID is required.', 'wp-git-plugins'));
-            }
-            
-            // Check for updates
-            $result = $this->repository->check_repository_updates($repo_id);
-            
-            if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
-            }
-            
-            // Return success response
-            wp_send_json_success([
-                'message' => __('Version check completed successfully.', 'wp-git-plugins'),
-                'update_info' => $result
-            ]);
-            
-        } catch (Exception $e) {
-            // Log the error
-            error_log('WP Git Plugins - Check Updates Error: ' . $e->getMessage());
-            
-            // Return error response
-            wp_send_json_error([
-                'message' => sprintf(__('Error checking for updates: %s', 'wp-git-plugins'), $e->getMessage())
-            ]);
+/**
+ * AJAX handler for updating a repository/plugin.
+ *
+ * @since 1.0.0
+ */
+public function ajax_update_repository() {
+    try {
+        $this->verify_ajax_request();
+
+        // Sanitize input
+        $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+        $force = isset($_POST['force']) ? (bool) $_POST['force'] : false;
+
+        if (empty($repo_id)) {
+            throw new Exception(__('Repository ID is required.', 'wp-git-plugins'));
         }
-    }
-    
-    /**
-     * AJAX handler for bulk checking repository updates
-     *
-     * @since 1.0.0
-     */
-    public function ajax_bulk_check_updates() {
-        try {
-            // Verify the AJAX request
-            $this->verify_ajax_request();
-            
-            // Check user capabilities
-            if (!current_user_can('update_plugins')) {
-                throw new Exception(__('You do not have permission to check for updates.', 'wp-git-plugins'));
-            }
-            
-            // Check for updates for all repositories
-            $results = $this->repository->check_all_repositories_for_updates();
-            
-            // Count updates
-            $update_count = count(array_filter($results, function($repo) {
-                return $repo['update_available'];
-            }));
-            
-            // Return success response
-            wp_send_json_success([
-                'message' => sprintf(
-                    _n(
-                        'Checked all repositories. %d update available.',
-                        'Checked all repositories. %d updates available.',
-                        $update_count,
-                        'wp-git-plugins'
-                    ),
-                    $update_count
-                ),
-                'results' => $results,
-                'update_count' => $update_count
-            ]);
-            
-        } catch (Exception $e) {
-            // Log the error
-            error_log('WP Git Plugins - Bulk Check Updates Error: ' . $e->getMessage());
-            
-            // Return error response
-            wp_send_json_error([
-                'message' => sprintf(__('Error checking for updates: %s', 'wp-git-plugins'), $e->getMessage())
-            ]);
+
+        // Get repository by ID
+        $repo = $this->repository->get_local_repository($repo_id);
+        if (empty($repo)) {
+            throw new Exception(__('Repository not found.', 'wp-git-plugins'));
         }
-    }
-    
-    /**
-     * AJAX handler for updating a repository
-     *
-     * @since 1.0.0
-     */
-    public function ajax_update_repository() {
-        $repo_id = 0;
-        $plugin_slug = '';
+
+        // Store plugin slug for error handling
+        $plugin_slug = $repo['plugin_slug'] ?? '';
+        error_log('WP Git Plugins - Starting update for repository ID: ' . $repo_id . ', Plugin: ' . $plugin_slug);
+
+        // Check if we need to deactivate the plugin first
         $was_active = false;
-        
-        try {
-            // Verify the AJAX request
-            $this->verify_ajax_request();
-            
-            // Check user capabilities
-            if (!current_user_can('update_plugins')) {
-                throw new Exception(__('You do not have permission to update plugins.', 'wp-git-plugins'));
-            }
-            
-            // Sanitize input
-            $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
-            $force = isset($_POST['force']) ? (bool) $_POST['force'] : false;
-            
-            if (empty($repo_id)) {
-                throw new Exception(__('Repository ID is required.', 'wp-git-plugins'));
-            }
-            
-            // Get repository by ID
-            $repo = $this->repository->get_local_repository($repo_id);
-            if (empty($repo)) {
-                throw new Exception(__('Repository not found.', 'wp-git-plugins'));
-            }
-            
-            // Store plugin slug for error handling
-            $plugin_slug = $repo['plugin_slug'] ?? '';
-            error_log('WP Git Plugins - Starting update for repository ID: ' . $repo_id . ', Plugin: ' . $plugin_slug);
-            
-            // Check if we need to deactivate the plugin first
-            if (!empty($plugin_slug)) {
-                // Check if plugin is active
-                $was_active = is_plugin_active($plugin_slug);
-                
-                if ($was_active) {
-                    error_log('WP Git Plugins - Deactivating plugin: ' . $plugin_slug);
-                    deactivate_plugins($plugin_slug, true);
-                    
-                    // Double check if deactivation was successful
-                    if (is_plugin_active($plugin_slug)) {
-                        throw new Exception(__('Failed to deactivate the plugin before update. Please try again.', 'wp-git-plugins'));
-                    }
-                    
-                    // Give WordPress time to process the deactivation
-                    sleep(1);
+        if (!empty($plugin_slug)) {
+            // Check if plugin is active
+            $was_active = is_plugin_active($plugin_slug);
+
+            if ($was_active) {
+                error_log('WP Git Plugins - Deactivating plugin: ' . $plugin_slug);
+                deactivate_plugins($plugin_slug, true);
+
+                // Double check if deactivation was successful
+                if (is_plugin_active($plugin_slug)) {
+                    throw new Exception(__('Failed to deactivate the plugin before update. Please try again.', 'wp-git-plugins'));
                 }
+
+                // Give WordPress time to process the deactivation
+                sleep(1);
             }
-            
-            // Update the repository
-            error_log('WP Git Plugins - Updating repository ID: ' . $repo_id . ( $force ? ' (force update)' : '' ));
-            $result = $this->repository->update_repository($repo_id, ['force' => $force]);
-            
-            if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
-            }
-            
-            // Get updated repository data
-            $updated_repo = $this->repository->get_local_repository($repo_id);
-            
-            // Reactivate the plugin if it was active before
-            $reactivation_success = true;
-            $reactivation_error = '';
-            
-            if ($was_active && !empty($plugin_slug) && file_exists(WP_PLUGIN_DIR . '/' . $plugin_slug)) {
-                error_log('WP Git Plugins - Reactivating plugin: ' . $plugin_slug);
-                $activated = activate_plugin($plugin_slug);
-                
-                if (is_wp_error($activated)) {
-                    $reactivation_success = false;
-                    $reactivation_error = $activated->get_error_message();
-                    error_log('WP Git Plugins - Reactivation failed: ' . $reactivation_error);
-                } else {
-                    // Verify reactivation was successful
-                    if (!is_plugin_active($plugin_slug)) {
-                        $reactivation_success = false;
-                        $reactivation_error = __('Plugin did not activate successfully after update.', 'wp-git-plugins');
-                        error_log('WP Git Plugins - Reactivation verification failed for: ' . $plugin_slug);
-                    }
-                }
-            }
-            
-            // Clear plugin update cache
-            if (function_exists('wp_clean_plugins_cache')) {
-                wp_clean_plugins_cache();
-            }
-            
-            // Prepare success response
-            $response = [
-                'message' => $force 
-                    ? __('Plugin has been force-updated successfully.', 'wp-git-plugins')
-                    : __('Plugin has been updated successfully.', 'wp-git-plugins'),
-                'repository' => $updated_repo,
-                'was_active' => $was_active,
-                'reactivated' => $reactivation_success,
-                'plugin_slug' => $plugin_slug,
-                'update_info' => $result
-            ];
-            
-            // Add reactivation warning if needed
-            if (!$reactivation_success) {
-                $response['reactivation_warning'] = sprintf(
-                    __('Warning: The plugin could not be reactivated automatically: %s', 'wp-git-plugins'),
-                    $reactivation_error
-                );
-                $response['message'] .= ' ' . __('However, there was an issue reactivating the plugin.', 'wp-git-plugins');
-            }
-            
-            wp_send_json_success($response);
-            
-        } catch (Exception $e) {
-            // Log the error with more context
-            error_log(sprintf(
-                'WP Git Plugins - Update Error for repo ID %s, plugin %s: %s',
-                $repo_id,
-                $plugin_slug,
-                $e->getMessage()
-            ));
-            
-            // Try to reactivate the plugin if the update failed after deactivation
-            if ($was_active && !empty($plugin_slug) && file_exists(WP_PLUGIN_DIR . '/' . $plugin_slug)) {
-                error_log('WP Git Plugins - Attempting to reactivate plugin after error: ' . $plugin_slug);
-                $reactivated = activate_plugin($plugin_slug);
-                if (is_wp_error($reactivated)) {
-                    error_log('WP Git Plugins - Reactivation after error failed: ' . $reactivated->get_error_message());
-                }
-            }
-            
-            // Return error response
-            wp_send_json_error([
-                'message' => sprintf(__('Error updating plugin: %s', 'wp-git-plugins'), $e->getMessage()),
-                'plugin_slug' => $plugin_slug,
-                'was_active' => $was_active
-            ]);
         }
+
+        // Update the repository
+        error_log('WP Git Plugins - Updating repository ID: ' . $repo_id . ( $force ? ' (force update)' : '' ));
+        $result = $this->repository->update_repository($repo_id, ['force' => $force]);
+
+        if (is_wp_error($result)) {
+            throw new Exception($result->get_error_message());
+        }
+
+        // Get updated repository data
+        $updated_repo = $this->repository->get_local_repository($repo_id);
+
+        // Reactivate the plugin if it was active before
+        $reactivation_success = true;
+        $reactivation_error = '';
+
+        if ($was_active && !empty($plugin_slug) && file_exists(WP_PLUGIN_DIR . '/' . $plugin_slug)) {
+            error_log('WP Git Plugins - Reactivating plugin: ' . $plugin_slug);
+            $activated = activate_plugin($plugin_slug);
+
+            if (is_wp_error($activated)) {
+                $reactivation_success = false;
+                $reactivation_error = $activated->get_error_message();
+                error_log('WP Git Plugins - Reactivation failed: ' . $reactivation_error);
+            } else {
+                // Verify reactivation was successful
+                if (!is_plugin_active($plugin_slug)) {
+                    $reactivation_success = false;
+                    $reactivation_error = __('Plugin did not activate successfully after update.', 'wp-git-plugins');
+                    error_log('WP Git Plugins - Reactivation verification failed for: ' . $plugin_slug);
+                }
+            }
+        }
+
+        // Clear plugin update cache
+        if (function_exists('wp_clean_plugins_cache')) {
+            wp_clean_plugins_cache();
+        }
+
+        // Prepare success response
+        $response = [
+            'message' => $force 
+                ? __('Plugin has been force-updated successfully.', 'wp-git-plugins')
+                : __('Plugin has been updated successfully.', 'wp-git-plugins'),
+            'repository' => $updated_repo,
+            'was_active' => $was_active,
+            'reactivated' => $reactivation_success,
+            'plugin_slug' => $plugin_slug,
+            'update_info' => $result
+        ];
+
+        // Add reactivation warning if needed
+        if (!$reactivation_success) {
+            $response['reactivation_warning'] = sprintf(
+                __('Warning: The plugin could not be reactivated automatically: %s', 'wp-git-plugins'),
+                $reactivation_error
+            );
+            $response['message'] .= ' ' . __('However, there was an issue reactivating the plugin.', 'wp-git-plugins');
+        }
+
+        wp_send_json_success($response);
+
+    } catch (Exception $e) {
+        // Log the error with more context
+        $repo_id = isset($repo_id) ? $repo_id : '';
+        $plugin_slug = isset($plugin_slug) ? $plugin_slug : '';
+        $was_active = isset($was_active) ? $was_active : false;
+        error_log(sprintf(
+            'WP Git Plugins - Update Error for repo ID %s, plugin %s: %s',
+            $repo_id,
+            $plugin_slug,
+            $e->getMessage()
+        ));
+
+        // Try to reactivate the plugin if the update failed after deactivation
+        if ($was_active && !empty($plugin_slug) && file_exists(WP_PLUGIN_DIR . '/' . $plugin_slug)) {
+            error_log('WP Git Plugins - Attempting to reactivate plugin after error: ' . $plugin_slug);
+            $reactivated = activate_plugin($plugin_slug);
+            if (is_wp_error($reactivated)) {
+                error_log('WP Git Plugins - Reactivation after error failed: ' . $reactivated->get_error_message());
+            }
+        }
+
+        // Return error response
+        wp_send_json_error([
+            'message' => sprintf(__('Error updating plugin: %s', 'wp-git-plugins'), $e->getMessage()),
+            'plugin_slug' => $plugin_slug,
+            'was_active' => $was_active
+        ]);
     }
+}
 
     /**
      * Add action links to the plugins page.

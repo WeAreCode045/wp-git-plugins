@@ -9,11 +9,8 @@ $repositories = $repository->get_local_repositories();
 <div class="wp-git-plugins-card">
     <div class="wp-git-plugins-card-header">
         <h2><?php esc_html_e('Repositories List', 'wp-git-plugins'); ?></h2>
-        <button class="button button-secondary check-all-updates">
-            <span class="dashicons dashicons-update"></span>
-            <?php esc_html_e('Check All Versions', 'wp-git-plugins'); ?>
-            <span id="update-count" class="update-count" style="display: none;"></span>
-        </button>
+        <p class="description"><?php esc_html_e('Manage your Git repositories and plugins.', 'wp-git-plugins'); ?></p>
+    </div>
         <span class="spinner check-all-spinner" style="float: none; margin-top: 0; display: none;"></span>
     </div>
     
