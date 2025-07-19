@@ -71,112 +71,44 @@ jQuery(document).ready(function($) {
             }
         });
     });
+});
 
-    // Handle branch selection
-    $(document).on('change', '.branch-selector', function() {
-        var $select = $(this);
-        var $container = $select.closest('.branch-selector-container');
-        var $spinner = $container.find('.branch-spinner');
-        var repoId = $container.data('repo-id');
-        var ghOwner = $container.data('gh-owner');
-        var ghName = $container.data('gh-name');
-        var currentBranch = $select.data('current-branch');
-        var newBranch = $select.val();
-        var nonce = $select.data('nonce');
-        var repoUrl = $container.data('repo-url');
-       
-        if (!confirm('Are you sure you want to switch to branch "' + newBranch + '"? This will delete the current plugin files and install the selected branch.')) {
-            $select.val(currentBranch);
+//Handle Activate and Deactivate actions
+jQuery(document).ready(function($) {
+    $('.activate-plugin, .deactivate-plugin').on('click', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var action = $button.hasClass('activate-plugin') ? 'activate' : 'deactivate';
+        var pluginId = $button.data('id');
+        var confirmMessage = action === 'activate' ? wpGitPlugins.i18n.confirm_activate : wpGitPlugins.i18n.confirm_deactivate;
+
+        if (!confirm(confirmMessage)) {
             return;
         }
-        $spinner.css('visibility', 'visible').addClass('is-active');
-        $select.prop('disabled', true);
+
+        $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + (action === 'activate' ? wpGitPlugins.i18n.activating : wpGitPlugins.i18n.deactivating));
+
         $.ajax({
-            url: repoUrl,
+            url: wpGitPlugins.ajax_url,
             type: 'POST',
             data: {
-                action: 'wp_git_plugins_switch_branch',
-                nonce: wpGitPlugins.ajax_nonce,
-                repo_id: repoId,
-                new_branch: newBranch
+                action: 'wp_git_plugins_' + action + '_plugin',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                plugin_id: pluginId
             },
             success: function(response) {
                 if (response.success) {
-                    $select.data('current-branch', newBranch);
-                    showNotice('success', 'Branch switched successfully! Reloading...');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1200);
+                    showNotice('success', response.data.message || (action === 'activate' ? wpGitPlugins.i18n.activate_success : wpGitPlugins.i18n.deactivate_success));
+                    // Optionally reload the page or update UI
+                    location.reload();
                 } else {
-                    $select.val(currentBranch);
-                    showNotice('error', 'Failed to switch branch: ' + (response.data && response.data.message || 'Unknown error'));
+                    showNotice('error', response.data.message || (action === 'activate' ? wpGitPlugins.i18n.activate_error : wpGitPlugins.i18n.deactivate_error));
+                    $button.prop('disabled', false).html(action === 'activate' ? wpGitPlugins.i18n.activate : wpGitPlugins.i18n.deactivate);
                 }
             },
-            error: function(xhr, status, error) {
-                $select.val(currentBranch);
-                showNotice('error', 'Failed to switch branch: ' + error);
-            },
-            complete: function() {
-                $spinner.css('visibility', 'hidden').removeClass('is-active');
-                $select.prop('disabled', false);
-            }
-        });
-    });
-
-    // Load branches when branch selector is clicked
-    $(document).on('focus', '.branch-selector', function() {
-        var $select = $(this);
-        var $container = $select.closest('.branch-selector-container');
-        if ($select.data('branches-loaded')) {
-            return;
-        }
-        var $spinner = $container.find('.branch-spinner');
-        $spinner.css('visibility', 'visible');
-        var repoId = $container.data('repo-id');
-        var ghOwner = $container.data('gh-owner');
-        var ghName = $container.data('gh-name');
-        var currentBranch = $select.data('current-branch');
-        var nonce = $select.data('nonce');
-        var repoUrl = $container.data('repo-url');
-        $.ajax({
-            url: repoUrl,
-            type: 'POST',
-            data: {
-                action: 'wp_git_plugins_get_branches',
-                nonce: wpGitPlugins.ajax_nonce,
-             repo_id: repoId,
-                gh_owner: ghOwner,
-                gh_name: ghName
-            },
-            success: function(response) {
-                if (response.success && response.data && response.data.branches) {
-                    $select.empty();
-                    $.each(response.data.branches, function(i, branch) {
-                        $select.append($('<option>', {
-                            value: branch,
-                            text: branch,
-                            selected: (branch === currentBranch)
-                        }));
-                    });
-                    $select.data('branches-loaded', true);
-                } else {
-                    console.error('Failed to load branches:', response);
-                    showNotice('error', 'Failed to load branches: ' + (response.data && response.data.message || 'Unknown error'));
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error loading branches:', error);
-                showNotice('error', 'Error loading branch: ' + error);
-                $select.empty().append(
-                    $('<option>', {
-                        value: currentBranch,
-                        text: currentBranch,
-                        selected: true
-                    })
-                );
-            },
-            complete: function() {
-                $spinner.css('visibility', 'hidden');
+            error: function() {
+                showNotice('error', action === 'activate' ? wpGitPlugins.i18n.activate_error : wpGitPlugins.i18n.deactivate_error);
+                $button.prop('disabled', false).html(action === 'activate' ? wpGitPlugins.i18n.activate : wpGitPlugins.i18n.deactivate);
             }
         });
     });
