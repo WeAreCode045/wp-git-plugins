@@ -120,9 +120,9 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 if (response.success) {
-                    showNotice('success', response.data.message || 'Checked for updates.');
+                    showNotice('success', (response.data && response.data.message) || 'Checked for updates.');
                 } else {
-                    showNotice('error', response.data.message || 'Failed to check for updates.');
+                    showNotice('error', (response.data && response.data.message) || 'Failed to check for updates.');
                 }
                 $button.prop('disabled', false).find('.spinner').hide();
             },
