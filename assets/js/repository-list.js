@@ -83,9 +83,8 @@ jQuery(document).ready(function($) {
         var currentBranch = $select.data('current-branch');
         var newBranch = $select.val();
         var nonce = $select.data('nonce');
-        if (currentBranch === newBranch) {
-            return;
-        }
+        var repoUrl = $container.data('repo-url');
+       
         if (!confirm('Are you sure you want to switch to branch "' + newBranch + '"? This will delete the current plugin files and install the selected branch.')) {
             $select.val(currentBranch);
             return;
@@ -93,7 +92,7 @@ jQuery(document).ready(function($) {
         $spinner.css('visibility', 'visible').addClass('is-active');
         $select.prop('disabled', true);
         $.ajax({
-            url: wpGitPlugins.ajax_url,
+            url: repoUrl,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_switch_branch',
@@ -138,8 +137,9 @@ jQuery(document).ready(function($) {
         var ghName = $container.data('gh-name');
         var currentBranch = $select.data('current-branch');
         var nonce = $select.data('nonce');
+        var repoUrl = $container.data('repo-url');
         $.ajax({
-            url: wpGitPlugins.ajax_url,
+            url: repoUrl,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
