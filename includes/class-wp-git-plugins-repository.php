@@ -365,10 +365,11 @@ if (!current_user_can('edit_plugins')) {
      * @param string $owner GitHub repository owner
      * @param string $repo GitHub repository name
      * @param string $branch Branch name (default: 'main')
+     * @param int $repo_id The ID of the repository
      * @return string|WP_Error Version string on success, WP_Error on failure
      */
  
-public function get_latest_version_from_github($owner, $repo, $branch = 'main') {
+public function get_latest_version_from_github($owner, $repo, $branch = 'main', $repo_id = null) {
     $transient_key = 'wp_git_plugins_latest_version_' . md5($owner . $repo . $branch);
     $cached = get_transient($transient_key);
     if (false !== $cached) {
@@ -380,39 +381,41 @@ public function get_latest_version_from_github($owner, $repo, $branch = 'main') 
     $response = wp_remote_get($plugin_file_url);
     if (!is_wp_error($response) && 200 === wp_remote_retrieve_response_code($response)) {
         $file_contents = wp_remote_retrieve_body($response);
-       if (preg_match('/^\\s*Version:\\s*(.+)$/mi', $file_contents, $matches)) {
-    $version = trim($matches[1]);
-    set_transient($transient_key, $version, HOUR_IN_SECONDS);
-    // Save to database
-    $repo_row = $this->db->get_repo_by_name($owner, $repo);
-    if ($repo_row && !empty($repo_row->id)) {
-        $this->db->update_repo($repo_row->id, [
-            'git_version' => $version,
-            'updated_at' => current_time('mysql')
-        ]);
-    }
-    return $version;
-}
+        if (preg_match('/^\\s*Version:\\s*(.+)$/mi', $file_contents, $matches)) {
+            $version = trim($matches[1]);
+            set_transient($transient_key, $version, HOUR_IN_SECONDS);
+            // Save to database
+            if ($repo_id !== null) {
+                $repo_row = $this->db->get_repo($repo_id);
+                if ($repo_row && !empty($repo_row->id)) {
+                    $this->db->update_repo($repo_row->id, [
+                        'git_version' => $version,
+                        'updated_at' => current_time('mysql')
+                    ]);
+                }
+            }
+            return $version;
         }
     }
-  
-    /**
-     * Check for updates for a specific repository
-     * 
-     * @param int $repo_id The repository ID
-     * @return array|WP_Error Array with update info or WP_Error on failure
-     */
-    public function check_repository_updates($repo_id) {
+}
+
+/**
+ * Check for updates for a specific repository
+ * 
+ * @param int $repo_id The repository ID
+ * @return array|WP_Error Array with update info or WP_Error on failure
+ */
+public function check_repository_updates($repo_id) {
         $repo = $this->get_local_repository($repo_id);
         
         if (!$repo) {
             return new WP_Error('repo_not_found', __('Repository not found.', 'wp-git-plugins'));
         }
-        
         $latest_version = $this->get_latest_version_from_github(
             $repo['gh_owner'],
             $repo['gh_name'],
-            $repo['branch']
+            $repo['branch'],
+            $repo_id
         );
         
         if (is_wp_error($latest_version)) {
@@ -477,7 +480,7 @@ public function get_latest_version_from_github($owner, $repo, $branch = 'main') 
 
         // Determine if private (check if token is set and URL is GitHub)
         $is_private = (!empty($this->github_token) && strpos($repo_url, 'github.com') !== false) ? 1 : 0;
-        
+        $latest_version = $this->get_latest_version_from_github($owner, $name, $branch, $repo_id ?? null);
         // Get the latest version from GitHub
         $latest_version = $this->get_latest_version_from_github($owner, $name, $branch);
         if (is_wp_error($latest_version)) {
