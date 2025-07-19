@@ -377,23 +377,54 @@ class WP_Git_Plugins_Admin {
             if (!current_user_can('manage_options')) {
                 throw new Exception(__('You do not have permission to view branches.', 'wp-git-plugins'));
             }
+            
+            // Support both repo_url (for add repo form) and repo_id (for branch selector)
             $repo_url = isset($_POST['repo_url']) ? esc_url_raw($_POST['repo_url']) : '';
+            $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+            $gh_owner = isset($_POST['gh_owner']) ? sanitize_text_field($_POST['gh_owner']) : '';
+            $gh_name = isset($_POST['gh_name']) ? sanitize_text_field($_POST['gh_name']) : '';
             $github_token = isset($_POST['github_token']) ? sanitize_text_field($_POST['github_token']) : '';
             $is_private = isset($_POST['is_private']) ? (bool) $_POST['is_private'] : false;
-            if (empty($repo_url)) {
-                throw new Exception(__('Repository URL is required.', 'wp-git-plugins'));
+            
+            // Determine owner and repo name
+            $owner = '';
+            $name = '';
+            
+            if (!empty($gh_owner) && !empty($gh_name)) {
+                // Using data from existing repository
+                $owner = $gh_owner;
+                $name = $gh_name;
+            } elseif (!empty($repo_url)) {
+                // Parse repository URL
+                $parsed = $this->repository->parse_github_url($repo_url);
+                if (is_wp_error($parsed)) {
+                    throw new Exception($parsed->get_error_message());
+                }
+                $owner = $parsed['owner'];
+                $name = $parsed['name'];
+            } elseif (!empty($repo_id)) {
+                // Get repository data from database
+                $repo = $this->repository->get_local_repository($repo_id);
+                if (empty($repo)) {
+                    throw new Exception(__('Repository not found.', 'wp-git-plugins'));
+                }
+                $owner = $repo['gh_owner'] ?? '';
+                $name = $repo['gh_name'] ?? '';
             }
+            
+            if (empty($owner) || empty($name)) {
+                throw new Exception(__('Repository owner and name are required.', 'wp-git-plugins'));
+            }
+            
             if (!empty($github_token)) {
                 $this->settings->set_github_token($github_token);
             }
-            $parsed = $this->repository->parse_github_url($repo_url);
-            if (is_wp_error($parsed)) {
-                throw new Exception($parsed->get_error_message());
-            }
-            $branches = $this->repository->get_github_branches($parsed['owner'], $parsed['name']);
+            
+            $branches = $this->repository->get_github_branches($owner, $name);
             if (is_wp_error($branches)) {
                 throw new Exception($branches->get_error_message());
             }
+            
             wp_send_json_success([
                 'branches' => $branches,
                 'default_branch' => in_array('main', $branches) ? 'main' : (in_array('master', $branches) ? 'master' : ($branches[0] ?? 'main'))
