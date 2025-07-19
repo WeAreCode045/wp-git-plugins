@@ -112,156 +112,56 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                             </div>
                         </td>
                         <td class="version-column">
-                            <span class="spinner version-spinner" style="float: none; margin-top: 0; visibility: hidden; margin-left: 5px;"></span>
-                            <span class="version-text"> </span>
+                            <?php if ($is_plugin_installed) : ?>
+                                <?php echo esc_html(get_plugin_data($plugin_path)['Version']); ?>
+                            <?php else : ?>
+                                <span class="dashicons dashicons-dismiss" title="<?php esc_attr_e('Plugin not installed', 'wp-git-plugins'); ?>"></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="latest-version-column">
                             <?php
-                            // Display the version text
-                            if ($is_plugin_installed) {
-                                $plugin_data = get_plugin_data($plugin_path, false, false);
-                                $version = $plugin_data['Version'] ?? '';
-                                // If version is not in database but plugin is installed, use plugin file version
-                                if (empty($repo['version']) && !empty($version)) {
-                                    // Update the database with the version from plugin file
-                                    $repository->update_repository($repo['id'], [
-                                        'version' => $version,
-                                        'last_updated' => current_time('mysql')
-                                    ]);
-                                }
-                                echo esc_html($version ?: '—');
+                            $latest_version = $repository->get_latest_version($repo['gh_owner'], $repo['gh_name'], $repo['branch']);
+                            if ($latest_version) {
+                                echo esc_html($latest_version);
                             } else {
-                                echo '—';
-                            }
-                            ?>  
-                        </td>
-                        <td class="installed-version">
-                            <?php 
-                            $installed_version = '';
-                            if ($is_plugin_installed) {
-                                $plugin_data = get_plugin_data($plugin_path, false, false);
-                                $installed_version = $plugin_data['Version'] ?? '';
-                                
-                                // If version is not in database but plugin is installed, use plugin file version
-                                if (empty($repo['version']) && !empty($installed_version)) {
-                                    // Update the database with the version from plugin file
-                                    $repository->update_repository($repo['id'], [
-                                        'version' => $installed_version,
-                                        'last_updated' => current_time('mysql')
-                                    ]);
-                                }
-                            }
-                            echo esc_html($installed_version ?: '—');
-                            ?>
-                        </td>
-                        <td class="latest-version">
-                            <?php 
-                            $git_version = $repo['git_version'] ?? ($repo['local_version'] ?? '');
-                            $update_available = $is_plugin_installed && !empty($installed_version) && !empty($git_version) && 
-                                              version_compare($git_version, $installed_version, '>');
-                            
-                            if ($update_available) {
-                                echo '<span class="update-available" style="color: #d63638; font-weight: 500;">' . esc_html($git_version) . '</span>';
-                            } else {
-                                echo esc_html($git_version ?: '—');
+                                echo '<span class="dashicons dashicons-dismiss" title="' . esc_attr__('Latest version not available', 'wp-git-plugins') . '"></span>';
                             }
                             ?>
                         </td>
                         <td class="status-column">
-                            <?php if ($is_plugin_installed) : ?>
-                                <?php if ($is_plugin_active) : ?>
-                                    <span class="status-active" style="color: #00a32a; font-weight: 500;">
-                                        <span class="dashicons dashicons-yes-alt"></span> <?php esc_html_e('Active', 'wp-git-plugins'); ?>
-                                    </span>
-                                <?php else : ?>
-                                    <span class="status-inactive" style="color: #dba617;">
-                                        <span class="dashicons dashicons-controls-pause"></span> <?php esc_html_e('Inactive', 'wp-git-plugins'); ?>
-                                    </span>
-                                <?php endif; ?>
+                            <?php if ($is_plugin_active) : ?>
+                                <span class="dashicons dashicons-yes" title="<?php esc_attr_e('Plugin is active', 'wp-git-plugins'); ?>"></span>
                             <?php else : ?>
-                                <span class="status-not-installed" style="color: #646970;">
-                                    <span class="dashicons dashicons-warning"></span> <?php esc_html_e('Not Installed', 'wp-git-plugins'); ?>
-                                </span>
+                                <span class="dashicons dashicons-no" title="<?php esc_attr_e('Plugin is inactive', 'wp-git-plugins'); ?>"></span>
                             <?php endif; ?>
-                        </td>
-                        <td class="last-updated">
-                            <?php 
-                            if (!empty($repo['last_updated'])) {
-                                $time_diff = human_time_diff(strtotime($repo['last_updated']), current_time('timestamp'));
-                                echo '<span title="' . esc_attr(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($repo['last_updated']))) . '">';
-                                echo esc_html(sprintf(__('%s ago', 'wp-git-plugins'), $time_diff));
-                                echo '</span>';
+                        </td>    
+                        <td class="last-updated-column">
+                            <?php
+                            $last_updated = $repository->get_last_updated($repo['gh_owner'], $repo['gh_name'], $repo['branch']);
+                            if ($last_updated) {
+                                echo esc_html($last_updated);
                             } else {
-                                echo '—';
+                                echo '<span class="dashicons dashicons-dismiss" title="' . esc_attr__('Last updated not available', 'wp-git-plugins') . '"></span>';
                             }
                             ?>
                         </td>
-                        <td class="actions" style="white-space: nowrap;">
-                            <div class="action-buttons" style="display: flex; gap: 5px;">
-                                <?php 
-                                // Check if update is available
-                                $update_available = false;
-                                if (!empty($repo['git_version']) && !empty($installed_version)) {
-                                    $update_available = version_compare($repo['git_version'], $installed_version, '>');
-                                }
-                                ?>
-                                
-                                <?php if ($update_available) : ?>
-                                    <button class="button button-primary button-small update-plugin" 
-                                            data-id="<?php echo esc_attr($repo['id']); ?>"
-                                            data-plugin="<?php echo esc_attr($plugin_slug); ?>"
-                                            data-current-version="<?php echo esc_attr($installed_version); ?>"
-                                            data-new-version="<?php echo esc_attr($repo['git_version']); ?>"
-                                            title="<?php esc_attr_e('Update plugin', 'wp-git-plugins'); ?>">
-                                        <span class="dashicons dashicons-update"></span>
-                                        <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>
-                                    </button>
-                                <?php else : ?>
-                                    <button class="button button-small check-version" 
-                                            data-id="<?php echo esc_attr($repo['id']); ?>" 
-                                            title="<?php esc_attr_e('Check for updates', 'wp-git-plugins'); ?>">
-                                        <span class="dashicons dashicons-update"></span>
-                                        <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>
-                                    </button>
-                                <?php endif; ?>
-                                
-                                <?php if ($is_plugin_installed) : ?>
-                                    <?php if ($is_plugin_active) : ?>
-                                        <button class="button button-small deactivate-plugin" 
-                                                data-plugin="<?php echo esc_attr($plugin_slug); ?>" 
-                                                title="<?php esc_attr_e('Deactivate plugin', 'wp-git-plugins'); ?>">
-                                            <span class="dashicons dashicons-controls-pause"></span>
-                                        </button>
-                                    <?php else : ?>
-                                        <button class="button button-small activate-plugin" 
-                                                data-plugin="<?php echo esc_attr($plugin_slug); ?>" 
-                                                title="<?php esc_attr_e('Activate plugin', 'wp-git-plugins'); ?>">
-                                            <span class="dashicons dashicons-controls-play"></span>
-                                        </button>
-                                    <?php endif; ?>
-                                <?php else : ?>
-                                    <button class="button button-small install-plugin" 
-                                            data-repo-id="<?php echo esc_attr($repo['id']); ?>" 
-                                            title="<?php esc_attr_e('Install plugin', 'wp-git-plugins'); ?>">
-                                        <span class="dashicons dashicons-download"></span>
-                                    </button>
-                                <?php endif; ?>
-                                
-                                <button class="button button-small delete-repo" 
-                                        data-id="<?php echo esc_attr($repo['id']); ?>" 
-                                        data-name="<?php echo esc_attr($repo['name']); ?>" 
-                                        title="<?php esc_attr_e('Remove repository', 'wp-git-plugins'); ?>">
-                                    <span class="dashicons dashicons-trash"></span>
-                                </button>
-                            </div>
+                        <td class="actions-column">
+                            <a href="#" class="delete-repo" data-repo-id="<?php echo esc_attr($repo['id']); ?>">
+                                <span class="dashicons dashicons-trash" title="<?php esc_attr_e('Delete Repository', 'wp-git-plugins'); ?>"></span>
+                            </a>
+                            <?php if ($is_plugin_installed) : ?>
+                                <a href="<?php echo esc_url(admin_url('plugins.php')); ?>" class="view-plugin" target="_blank">
+                                    <span class="dashicons dashicons-admin-plugins" title="<?php esc_attr_e('View Plugin', 'wp-git-plugins'); ?>"></span>
+                                </a>
+                            <?php endif; ?>
+                            <a href="<?php echo esc_url($repo['url']); ?>" class="view-repo" target="_blank">
+                                <span class="dashicons dashicons-external" title="<?php esc_attr_e('View Repository', 'wp-git-plugins'); ?>"></span>
+                            </a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     <?php endif; ?>
-</div>
-
-<div id="update-results" style="margin-top: 20px; display: none;">
-    <h3><?php esc_html_e('Update Check Results', 'wp-git-plugins'); ?></h3>
-    <div id="update-results-content"></div>
-</div>
+</div>      
 
