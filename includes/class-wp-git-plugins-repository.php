@@ -324,40 +324,7 @@ if (!current_user_can('edit_plugins')) {
         return $repo ? $this->map_db_to_local_repo((array) $repo) : false;
     }
     
-    /**
-     * Get the latest version of a GitHub repository
-     * 
-     * @param array $git_repo GitHub repository data
-     * @return string|WP_Error Version number or WP_Error on failure
-     */
-    
-    /**
-     * Update the version of a local repository
-     *
-     * @param int $local_repo_id The local repository ID
-     * @param string $version The new version
-     * @param bool $is_git_version Whether this is the git version (true) or local version (false)
-     * @return bool|int Number of rows updated or false on failure
-     */
-    public function update_local_repo_version($local_repo_id, $version, $is_git_version = false) {
-        if (empty($local_repo_id) || empty($version)) {
-            return false;
-        }
-        
-        $version = sanitize_text_field($version);
-        $update_data = [
-            'updated_at' => current_time('mysql')
-        ];
-        
-        if ($is_git_version) {
-            $update_data['git_version'] = $version;
-        } else {
-            $update_data['local_version'] = $version;
-        }
-        
-        // Update the repository in the database using the DB class
-        return $this->db->update_repo($local_repo_id, $update_data);
-    }
+    // ...existing code...
     
     /**
      * Get the latest version of a plugin from GitHub by parsing the plugin header
