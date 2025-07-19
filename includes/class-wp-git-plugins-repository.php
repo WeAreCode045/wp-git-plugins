@@ -138,16 +138,7 @@ class WP_Git_Plugins_Repository {
         $repo = $this->db->get_repo_by_name($owner, $name);
         return $repo ? $this->map_db_to_local_repo((array) $repo) : false;
     }
-        
-
-
-
-
-   
-
-  
     
-
     
     /**
      * Add a new repository
@@ -231,7 +222,6 @@ class WP_Git_Plugins_Repository {
         return $repo_id; // Return the repository ID instead of true
     }
     
-    // ...existing code...
     public function parse_github_url($url) {
         $pattern = '#^(?:https?://|git@)?(?:www\.)?github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$#';
         

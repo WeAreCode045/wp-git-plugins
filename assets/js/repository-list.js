@@ -112,4 +112,134 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    // Handle branch selector change
+    $(document).on('change', '.branch-selector', function() {
+        var $select = $(this);
+        var $container = $select.closest('.branch-selector-container');
+        var $spinner = $container.find('.branch-spinner');
+        var currentBranch = $select.data('current-branch');
+        var newBranch = $select.val();
+        var repoId = $container.data('repo-id');
+
+        // If user selected the same branch, do nothing
+        if (newBranch === currentBranch) {
+            return;
+        }
+
+        // Confirm branch change
+        var confirmMessage = wpGitPlugins.i18n.confirm_branch_change.replace('%s', newBranch);
+        if (!confirm(confirmMessage)) {
+            $select.val(currentBranch);
+            return;
+        }
+
+        // Show spinner and disable select
+        $spinner.css('visibility', 'visible').addClass('is-active');
+        $select.prop('disabled', true);
+
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_change_branch',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId,
+                branch: newBranch
+            },
+            success: function(response) {
+                if (response.success) {
+                    $select.data('current-branch', newBranch);
+                    showNotice('success', 'Branch switched successfully! Reloading...');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1200);
+                } else {
+                    $select.val(currentBranch);
+                    showNotice('error', 'Failed to switch branch: ' + (response.data && response.data.message || 'Unknown error'));
+                }
+            },
+            error: function(xhr, status, error) {
+                $select.val(currentBranch);
+                showNotice('error', 'Failed to switch branch: ' + error);
+            },
+            complete: function() {
+                $spinner.css('visibility', 'hidden').removeClass('is-active');
+                $select.prop('disabled', false);
+            }
+        });
+    });
+
+    // Load branches when branch selector is clicked/focused
+    $(document).on('focus', '.branch-selector', function() {
+        var $select = $(this);
+        var $container = $select.closest('.branch-selector-container');
+        
+        // If branches already loaded, do nothing
+        if ($select.data('branches-loaded')) {
+            return;
+        }
+        
+        var $spinner = $container.find('.branch-spinner');
+        $spinner.css('visibility', 'visible').addClass('is-active');
+        
+        var repoId = $container.data('repo-id');
+        var ghOwner = $container.data('gh-owner');
+        var ghName = $container.data('gh-name');
+        var currentBranch = $select.data('current-branch');
+        
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_get_branches',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId,
+                gh_owner: ghOwner,
+                gh_name: ghName
+            },
+            success: function(response) {
+                if (response.success && response.data && response.data.branches) {
+                    // Clear existing options
+                    $select.empty();
+                    
+                    // Add all branches
+                    $.each(response.data.branches, function(i, branch) {
+                        $select.append($('<option>', {
+                            value: branch,
+                            text: branch,
+                            selected: (branch === currentBranch)
+                        }));
+                    });
+                    
+                    // Mark as loaded
+                    $select.data('branches-loaded', true);
+                } else {
+                    console.error('Failed to load branches:', response);
+                    showNotice('error', 'Failed to load branches: ' + (response.data && response.data.message || 'Unknown error'));
+                    
+                    // Keep current branch as only option
+                    $select.empty().append($('<option>', {
+                        value: currentBranch,
+                        text: currentBranch,
+                        selected: true
+                    }));
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading branches:', error);
+                showNotice('error', 'Error loading branches: ' + error);
+                
+                // Keep current branch as only option
+                $select.empty().append($('<option>', {
+                    value: currentBranch,
+                    text: currentBranch,
+                    selected: true
+                }));
+            },
+            complete: function() {
+                $spinner.css('visibility', 'hidden').removeClass('is-active');
+            }
+        });
+    });
 });

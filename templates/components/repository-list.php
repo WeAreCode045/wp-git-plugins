@@ -113,8 +113,7 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                  data-gh-owner="<?php echo esc_attr($repo['gh_owner']); ?>"
                                  data-gh-name="<?php echo esc_attr($repo['gh_name']); ?>">
                                 <select class="branch-selector" style="min-width: 150px;" 
-                                        data-current-branch="<?php echo esc_attr($repo['branch']); ?>"
-                                        data-nonce="<?php echo wp_create_nonce('wp_git_plugins_nonce'); ?>">
+                                        data-current-branch="<?php echo esc_attr($repo['branch']); ?>">
                                     <option value="<?php echo esc_attr($repo['branch']); ?>" selected>
                                         <?php echo esc_html($repo['branch']); ?>
                                     </option>
