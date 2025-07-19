@@ -139,7 +139,7 @@ jQuery(document).ready(function($) {
         var currentBranch = $select.data('current-branch');
         var nonce = $select.data('nonce');
         $.ajax({
-            url: ajaxurl,
+            url: ajax_url,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
