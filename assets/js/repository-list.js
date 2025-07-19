@@ -72,65 +72,72 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Handle update plugin action
-    $('.update-plugin').on('click', function(e) {
+    // Single button for check/update plugin action
+    $('.plugin-action').on('click', function(e) {
         e.preventDefault();
         var $button = $(this);
         var repoId = $button.data('id');
         var pluginSlug = $button.data('plugin');
+        var state = $button.data('state') || 'check';
         $button.prop('disabled', true).find('.spinner').show();
-        $.ajax({
-            url: wpGitPlugins.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'wp_git_plugins_update_repository',
-                _ajax_nonce: wpGitPlugins.ajax_nonce,
-                repo_id: repoId,
-                plugin_slug: pluginSlug
-            },
-            success: function(response) {
-                if (response.success) {
-                    showNotice('success', response.data.message || 'Plugin updated successfully.');
-                    setTimeout(function() { location.reload(); }, 1200);
-                } else {
-                    showNotice('error', response.data.message || 'Failed to update plugin.');
+        if (state === 'check') {
+            // Check for updates
+            $.ajax({
+                url: wpGitPlugins.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'wp_git_plugins_check_update',
+                    _ajax_nonce: wpGitPlugins.ajax_nonce,
+                    repo_id: repoId
+                },
+                success: function(response) {
                     $button.prop('disabled', false).find('.spinner').hide();
+                    if (response.success && response.data && response.data.update_available) {
+                        $button.text(wpGitPlugins.i18n.updating).data('state', 'update');
+                        showNotice('success', wpGitPlugins.i18n.update_available.replace('%s', response.data.latest_version).replace('%s', response.data.local_version));
+                    } else if (response.success) {
+                        $button.text(wpGitPlugins.i18n.no_updates).data('state', 'check');
+                        showNotice('success', wpGitPlugins.i18n.no_updates);
+                    } else {
+                        $button.text(wpGitPlugins.i18n.update_check_error).data('state', 'check');
+                        showNotice('error', response.data && response.data.message ? response.data.message : wpGitPlugins.i18n.update_check_error);
+                    }
+                },
+                error: function() {
+                    $button.prop('disabled', false).find('.spinner').hide();
+                    $button.text(wpGitPlugins.i18n.update_check_error).data('state', 'check');
+                    showNotice('error', wpGitPlugins.i18n.update_check_error);
                 }
-            },
-            error: function() {
-                showNotice('error', 'Failed to update plugin.');
-                $button.prop('disabled', false).find('.spinner').hide();
-            }
-        });
-    });
-
-    // Handle check version action
-    $('.check-version').on('click', function(e) {
-        e.preventDefault();
-        var $button = $(this);
-        var repoId = $button.data('id');
-        $button.prop('disabled', true).find('.spinner').show();
-        $.ajax({
-            url: wpGitPlugins.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'wp_git_plugins_check_update',
-                _ajax_nonce: wpGitPlugins.ajax_nonce,
-                repo_id: repoId
-            },
-            success: function(response) {
-                if (response.success) {
-                    showNotice('success', (response.data && response.data.message) || 'Checked for updates.');
-                } else {
-                    showNotice('error', (response.data && response.data.message) || 'Failed to check for updates.');
+            });
+        } else if (state === 'update') {
+            // Update plugin
+            $.ajax({
+                url: wpGitPlugins.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'wp_git_plugins_update_repository',
+                    _ajax_nonce: wpGitPlugins.ajax_nonce,
+                    repo_id: repoId,
+                    plugin_slug: pluginSlug
+                },
+                success: function(response) {
+                    $button.prop('disabled', false).find('.spinner').hide();
+                    if (response.success) {
+                        $button.text(wpGitPlugins.i18n.update_success.replace('%s', response.data.local_version)).data('state', 'check');
+                        showNotice('success', response.data.message || wpGitPlugins.i18n.update_success.replace('%s', response.data.local_version));
+                        setTimeout(function() { location.reload(); }, 1200);
+                    } else {
+                        $button.text(wpGitPlugins.i18n.update_error).data('state', 'check');
+                        showNotice('error', response.data && response.data.message ? response.data.message : wpGitPlugins.i18n.update_error);
+                    }
+                },
+                error: function() {
+                    $button.prop('disabled', false).find('.spinner').hide();
+                    $button.text(wpGitPlugins.i18n.update_error).data('state', 'check');
+                    showNotice('error', wpGitPlugins.i18n.update_error);
                 }
-                $button.prop('disabled', false).find('.spinner').hide();
-            },
-            error: function() {
-                showNotice('error', 'Failed to check for updates.');
-                $button.prop('disabled', false).find('.spinner').hide();
-            }
-        });
+            });
+        }
     });
 
     // Handle activate plugin action

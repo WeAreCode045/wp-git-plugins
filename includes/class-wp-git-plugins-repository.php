@@ -395,13 +395,13 @@ public function get_latest_version_from_github($owner, $repo, $branch = 'main', 
     return new WP_Error('version_not_found', __('Could not determine latest version from GitHub.', 'wp-git-plugins'));
 }
 
-/**
- * Check for updates for a specific repository
- * 
- * @param int $repo_id The repository ID
- * @return array|WP_Error Array with update info or WP_Error on failure
- */
-public function check_repository_updates($repo_id) {
+
+    /**
+     * Check the latest version from GitHub and update git_version in DB (does NOT update plugin files)
+     * @param int $repo_id The repository ID
+     * @return array|WP_Error Array with version info or WP_Error on failure
+     */
+    public function check_repository_version($repo_id) {
         $repo = $this->get_local_repository($repo_id);
         if (!$repo) {
             if ($this->error_handler) {
@@ -426,11 +426,72 @@ public function check_repository_updates($repo_id) {
             'git_version' => $latest_version,
             'updated_at' => current_time('mysql')
         ]);
+        // Refresh repo data
+        $repo = $this->get_local_repository($repo_id);
         return [
             'repo_id' => $repo_id,
             'local_version' => $repo['local_version'],
             'latest_version' => $latest_version,
             'update_available' => version_compare($latest_version, $repo['local_version'], '>')
+        ];
+    }
+
+    /**
+     * Update a repository to the latest version (only if update is available)
+     * @param int $id Repository ID
+     * @param array $data Update data
+     * @return array|WP_Error Updated repository data or WP_Error on failure
+     */
+    public function update_repository($id, $data = []) {
+        $repo = $this->get_local_repository($id);
+        if (empty($repo)) {
+            return new WP_Error('repo_not_found', __('Repository not found.', 'wp-git-plugins'));
+        }
+        // Only update if git_version is newer than local_version
+        if (empty($repo['git_version']) || version_compare($repo['git_version'], $repo['local_version'], '<=')) {
+            return new WP_Error('already_updated', __('The plugin is already up to date.', 'wp-git-plugins'));
+        }
+        // ...existing code for update (remove plugin, install, update local_version)...
+        $target_dir = WP_PLUGIN_DIR . '/' . $repo['plugin_slug'];
+        if (file_exists($target_dir)) {
+            $this->rrmdir($target_dir);
+        }
+        $repo_data = [
+            'id' => $repo['id'],
+            'git_repo_url' => $repo['git_repo_url'],
+            'gh_owner' => $repo['gh_owner'],
+            'gh_name' => $repo['gh_name'],
+            'branch' => $repo['branch'] ?? 'main',
+            'is_private' => $repo['is_private'] ?? 0,
+            'plugin_slug' => $repo['plugin_slug']
+        ];
+        $result = $this->install_plugin($repo_data);
+        if (is_wp_error($result)) {
+            return $result;
+        }
+        $plugin_file = $target_dir . '/' . $repo['gh_name'] . '.php';
+        if (file_exists($plugin_file)) {
+            $plugin_data = get_plugin_data($plugin_file, false, false);
+            if (!empty($plugin_data['Version'])) {
+                $installed_version = $plugin_data['Version'];
+            }
+        }
+        $installed_version = $installed_version ?? $repo['git_version'];
+        $update_data = [
+            'local_version' => $installed_version,
+            'updated_at' => current_time('mysql')
+        ];
+        $updated = $this->db->update_repo($id, $update_data);
+        if (!$updated) {
+            return new WP_Error('update_failed', __('Failed to update repository version in the database.', 'wp-git-plugins'));
+        }
+        $updated_repo = $this->get_local_repository($id);
+        return [
+            'repo_id' => $id,
+            'local_version' => $installed_version,
+            'previous_version' => $repo['local_version'],
+            'success' => true,
+            'message' => __('Plugin updated successfully.', 'wp-git-plugins')
         ];
     }
     
