@@ -166,7 +166,7 @@ jQuery(document).ready(function($) {
             },
             error: function(xhr, status, error) {
                 console.error('Error loading branches:', error);
-                showNotice('error', 'Error loading branches: ' + error);
+                showNotice('error', 'Error loading branch: ' + error);
                 $select.empty().append(
                     $('<option>', {
                         value: currentBranch,
