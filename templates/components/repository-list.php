@@ -3,7 +3,9 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-$repository = new WP_Git_Plugins_Repository();
+// Create repository instance with settings for GitHub token access
+$settings = new WP_Git_Plugins_Settings();
+$repository = new WP_Git_Plugins_Repository($settings);
 $repositories = $repository->get_local_repositories();
 ?>
 <div class="wp-git-plugins-card">

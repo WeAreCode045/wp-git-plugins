@@ -11,6 +11,9 @@ class WP_Git_Plugins_Repository {
         $this->settings = $settings;
         $this->github_token = $this->settings ? $this->settings->get_github_token() : '';
         
+        // Debug token availability
+        error_log('WP Git Plugins - Repository initialized with token: ' . (!empty($this->github_token) ? 'YES' : 'NO'));
+        
         // Register AJAX handlers for repository operations
         add_action('wp_ajax_wp_git_plugins_get_branches', array($this, 'ajax_get_branches'));
     }
@@ -80,6 +83,16 @@ class WP_Git_Plugins_Repository {
     public function get_local_repository_by_name($owner, $name) {
         $repo = $this->db->get_repo_by_name($owner, $name);
         return $repo ? $this->map_db_to_local_repo((array) $repo) : false;
+    }
+    
+    /**
+     * Delete a local repository by ID
+     * 
+     * @param int $id Local repository ID
+     * @return bool True on success, false on failure
+     */
+    public function delete_local_repository($id) {
+        return $this->db->delete_repo($id);
     }
     
     
@@ -446,14 +459,18 @@ class WP_Git_Plugins_Repository {
      * @return array|WP_Error Array of branch names or WP_Error on failure
      */
     public function get_github_branches($owner, $repo) {
+        error_log('WP Git Plugins - get_github_branches called for: ' . $owner . '/' . $repo);
+        
         $transient_key = 'wpgp_github_branches_' . md5($owner . $repo);
         $cached = get_transient($transient_key);
         
         if ($cached !== false) {
+            error_log('WP Git Plugins - Returning cached branches: ' . json_encode($cached));
             return $cached;
         }
         
         $api_url = $this->get_github_api_url($owner, $repo, 'branches');
+        error_log('WP Git Plugins - GitHub API URL: ' . $api_url);
         
         $args = [];
         if (!empty($this->github_token)) {
@@ -461,26 +478,43 @@ class WP_Git_Plugins_Repository {
                 'Authorization' => 'token ' . $this->github_token,
                 'Accept' => 'application/vnd.github.v3+json'
             ];
+            error_log('WP Git Plugins - Using GitHub token for authentication');
+        } else {
+            error_log('WP Git Plugins - No GitHub token available, using public API');
         }
         
         $response = wp_remote_get($api_url, $args);
         
         if (is_wp_error($response)) {
+            error_log('WP Git Plugins - wp_remote_get error: ' . $response->get_error_message());
             return $response;
         }
         
         $response_code = wp_remote_retrieve_response_code($response);
+        $response_body = wp_remote_retrieve_body($response);
+        
+        error_log('WP Git Plugins - GitHub API response code: ' . $response_code);
+        error_log('WP Git Plugins - GitHub API response body: ' . substr($response_body, 0, 500) . '...');
+        
         if ($response_code !== 200) {
-            return new WP_Error(
-                'github_api_error',
-                sprintf(
-                    __('Failed to fetch branches. GitHub API returned status code %d', 'wp-git-plugins'),
-                    $response_code
-                )
+            $error_message = sprintf(
+                __('Failed to fetch branches. GitHub API returned status code %d', 'wp-git-plugins'),
+                $response_code
             );
+            error_log('WP Git Plugins - API Error: ' . $error_message);
+            
+            // Check for rate limiting
+            if ($response_code === 403) {
+                $headers = wp_remote_retrieve_headers($response);
+                if (isset($headers['x-ratelimit-remaining']) && $headers['x-ratelimit-remaining'] == '0') {
+                    $error_message = __('GitHub API rate limit exceeded. Please wait or add a GitHub token.', 'wp-git-plugins');
+                }
+            }
+            
+            return new WP_Error('github_api_error', $error_message);
         }
         
-        $branches = json_decode(wp_remote_retrieve_body($response), true);
+        $branches = json_decode($response_body, true);
         $branch_names = [];
         
         if (is_array($branches)) {
@@ -489,11 +523,15 @@ class WP_Git_Plugins_Repository {
                     $branch_names[] = $branch['name'];
                 }
             }
+            error_log('WP Git Plugins - Extracted branch names: ' . json_encode($branch_names));
+        } else {
+            error_log('WP Git Plugins - Failed to decode JSON response or no branches found');
         }
         
         // Cache for 1 hour
         if (!empty($branch_names)) {
             set_transient($transient_key, $branch_names, HOUR_IN_SECONDS);
+            error_log('WP Git Plugins - Cached branches for 1 hour');
         }
         
         return $branch_names;

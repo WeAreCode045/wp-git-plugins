@@ -170,13 +170,14 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Load branches when branch selector is clicked/focused
+        // Load branches when branch selector is clicked/focused
     $(document).on('focus', '.branch-selector', function() {
         var $select = $(this);
         var $container = $select.closest('.branch-selector-container');
         
         // If branches already loaded, do nothing
         if ($select.data('branches-loaded')) {
+            console.log('Branches already loaded for this selector');
             return;
         }
         
@@ -192,8 +193,22 @@ jQuery(document).ready(function($) {
             repoId: repoId,
             ghOwner: ghOwner,
             ghName: ghName,
-            currentBranch: currentBranch
+            currentBranch: currentBranch,
+            ajaxUrl: wpGitPlugins.ajax_url,
+            nonce: wpGitPlugins.ajax_nonce
         });
+        
+        // Validate required data
+        if (!repoId || !ghOwner || !ghName) {
+            console.error('Missing required data for branch loading:', {
+                repoId: repoId,
+                ghOwner: ghOwner,
+                ghName: ghName
+            });
+            showNotice('error', 'Missing repository information for loading branches');
+            $spinner.css('visibility', 'hidden').removeClass('is-active');
+            return;
+        }
         
         $.ajax({
             url: wpGitPlugins.ajax_url,
@@ -238,6 +253,7 @@ jQuery(document).ready(function($) {
             },
             error: function(xhr, status, error) {
                 console.error('Error loading branches:', {xhr: xhr, status: status, error: error});
+                console.error('Response text:', xhr.responseText);
                 showNotice('error', 'Error loading branches: ' + error);
                 
                 // Keep current branch as only option
