@@ -474,7 +474,7 @@ class WP_Git_Plugins_Admin {
         try {
             $this->verify_ajax_request();
             if (!current_user_can('delete_plugins')) {
-                throw new Exception(__('You donot have permission to remove repositories.', 'wp-git-plugins'));
+                throw new Exception(__('You do not have permission to remove repositories.', 'wp-git-plugins'));
             }
             $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
             if (empty($repo_id)) {
