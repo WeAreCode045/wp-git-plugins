@@ -112,6 +112,28 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                             </div>
                         </td>
                         <td class="version-column">
+                            <span class="spinner version-spinner" style="float: none; margin-top: 0; visibility: hidden; margin-left: 5px;"></span>
+                            <span class="version-text"> </span>
+                            <?php
+                            // Display the version text
+                            if ($is_plugin_installed) {
+                                $plugin_data = get_plugin_data($plugin_path, false, false);
+                                $version = $plugin_data['Version'] ?? '';
+                                // If version is not in database but plugin is installed, use plugin file version
+                                if (empty($repo['version']) && !empty($version)) {
+                                    // Update the database with the version from plugin file
+                                    $repository->update_repository($repo['id'], [
+                                        'version' => $version,
+                                        'last_updated' => current_time('mysql')
+                                    ]);
+                                }
+                                echo esc_html($version ?: '—');
+                            } else {
+                                echo '—';
+                            }
+                            ?>  
+                        </td>
+                        <td class="installed-version">
                             <?php 
                             $installed_version = '';
                             if ($is_plugin_installed) {
