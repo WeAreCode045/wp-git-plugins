@@ -93,7 +93,7 @@ jQuery(document).ready(function($) {
         $spinner.css('visibility', 'visible').addClass('is-active');
         $select.prop('disabled', true);
         $.ajax({
-            url: ajax_url,
+            url: wpGitPlugins.ajax_url,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_switch_branch',
@@ -139,7 +139,7 @@ jQuery(document).ready(function($) {
         var currentBranch = $select.data('current-branch');
         var nonce = $select.data('nonce');
         $.ajax({
-            url: ajax_url,
+            url: wpGitPlugins.ajax_url,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
