@@ -93,11 +93,11 @@ jQuery(document).ready(function($) {
         $spinner.css('visibility', 'visible').addClass('is-active');
         $select.prop('disabled', true);
         $.ajax({
-            url: ajaxurl,
+            url: ajax_url,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_switch_branch',
-                nonce: nonce,
+                nonce: wpGitPlugins.ajax_nonce,
                 repo_id: repoId,
                 new_branch: newBranch
             },
@@ -143,8 +143,8 @@ jQuery(document).ready(function($) {
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_get_branches',
-                nonce: nonce,
-                repo_id: repoId,
+                nonce: wpGitPlugins.ajax_nonce,
+             repo_id: repoId,
                 gh_owner: ghOwner,
                 gh_name: ghName
             },
