@@ -20,21 +20,22 @@ wpGitPlugins.i18n = wpGitPlugins.i18n || {
     branch_change_error: 'Failed to switch branch.'
 };
 
+// Show notices function - global scope so it can be accessed from AJAX callbacks
+function showNotice(type, message) {
+    // Remove any existing notices
+    jQuery('.wp-git-plugins-notice').remove();
+    // Create and show new notice
+    var notice = jQuery('<div class="notice notice-' + type + ' is-dismissible wp-git-plugins-notice"><p>' + message + '</p></div>');
+    jQuery('.wrap > h1').after(notice);
+    // Auto-hide after 5 seconds
+    setTimeout(function() {
+        notice.fadeOut(400, function() {
+            jQuery(this).remove();
+        });
+    }, 5000);
+}
+
 jQuery(document).ready(function($) {
-    // Show notices
-    function showNotice(type, message) {
-        // Remove any existing notices
-        $('.wp-git-plugins-notice').remove();
-        // Create and show new notice
-        var notice = $('<div class="notice notice-' + type + ' is-dismissible wp-git-plugins-notice"><p>' + message + '</p></div>');
-        $('.wrap > h1').after(notice);
-        // Auto-hide after 5 seconds
-        setTimeout(function() {
-            notice.fadeOut(400, function() {
-                $(this).remove();
-            });
-        }, 5000);
-    }
 
     // Handle delete action
     $('.delete-repo').on('click', function(e) {
