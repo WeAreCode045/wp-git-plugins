@@ -3,10 +3,17 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-// Create repository instance with settings for GitHub token access
-$settings = new WP_Git_Plugins_Settings();
-$repository = new WP_Git_Plugins_Repository($settings);
-$repositories = $repository->get_local_repositories();
+// Get repositories using the database directly
+$db = WP_Git_Plugins_DB::get_instance();
+$repositories = $db->get_repos();
+
+// Convert database results to array format
+$repo_list = [];
+if ($repositories) {
+    foreach ($repositories as $repo) {
+        $repo_list[] = (array) $repo;
+    }
+}
 ?>
 <div class="wp-git-plugins-card">
     <div class="wp-git-plugins-card-header">
@@ -19,7 +26,7 @@ $repositories = $repository->get_local_repositories();
         <span class="spinner check-all-spinner" style="float: none; margin-top: 0; display: none;"></span>
     </div>
     
-    <?php if (empty($repositories)) : ?>
+    <?php if (empty($repo_list)) : ?>
         <p><?php esc_html_e('No repositories have been added yet.', 'wp-git-plugins'); ?></p>
     <?php else : ?>
         <?php
@@ -52,7 +59,7 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                 // Get all plugins
                 $all_plugins = get_plugins();
                 
-                foreach ( $repositories as $repo_obj ) :
+                foreach ( $repo_list as $repo_obj ) :
                     $repo = (array) $repo_obj;
                     // Ensure compatibility with legacy keys
                     if ( empty( $repo['name'] ) && ! empty( $repo['gh_name'] ) ) {
