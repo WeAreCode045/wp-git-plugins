@@ -188,6 +188,13 @@ jQuery(document).ready(function($) {
         var ghName = $container.data('gh-name');
         var currentBranch = $select.data('current-branch');
         
+        console.log('Loading branches for:', {
+            repoId: repoId,
+            ghOwner: ghOwner,
+            ghName: ghName,
+            currentBranch: currentBranch
+        });
+        
         $.ajax({
             url: wpGitPlugins.ajax_url,
             type: 'POST',
@@ -199,6 +206,8 @@ jQuery(document).ready(function($) {
                 gh_name: ghName
             },
             success: function(response) {
+                console.log('Branch loading response:', response);
+                
                 if (response.success && response.data && response.data.branches) {
                     // Clear existing options
                     $select.empty();
@@ -214,6 +223,7 @@ jQuery(document).ready(function($) {
                     
                     // Mark as loaded
                     $select.data('branches-loaded', true);
+                    console.log('Branches loaded successfully:', response.data.branches);
                 } else {
                     console.error('Failed to load branches:', response);
                     showNotice('error', 'Failed to load branches: ' + (response.data && response.data.message || 'Unknown error'));
@@ -227,7 +237,7 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Error loading branches:', error);
+                console.error('Error loading branches:', {xhr: xhr, status: status, error: error});
                 showNotice('error', 'Error loading branches: ' + error);
                 
                 // Keep current branch as only option

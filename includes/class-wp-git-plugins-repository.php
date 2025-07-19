@@ -11,73 +11,16 @@ class WP_Git_Plugins_Repository {
         $this->settings = $settings;
         $this->github_token = $this->settings ? $this->settings->get_github_token() : '';
         
-        // Add AJAX handlers for branch operations
+        // Register AJAX handlers for repository operations
         add_action('wp_ajax_wp_git_plugins_get_branches', array($this, 'ajax_get_branches'));
-        add_action('wp_ajax_wp_git_plugins_switch_branch', array($this, 'ajax_switch_branch'));
+    }
+    
     
     /**
      * Get all local repositories
      * 
      * @return array Array of local repository data
-     */
-    /**
-     * Get all branches for a GitHub repository
-     * 
-     * @param string $owner Repository owner
-     * @param string $repo Repository name
-     * @return array|WP_Error Array of branch names or WP_Error on failure
-     */
-    }
-    
-    /**
-     * AJAX handler to switch repository branch
-     */
-    public function ajax_switch_branch() {
-        check_ajax_referer('wp_git_plugins_nonce', 'nonce');
-        
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => __('You do not have permission to perform this action.', 'wp-git-plugins')));
-        }
-        
-        $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
-        $new_branch = isset($_POST['new_branch']) ? sanitize_text_field($_POST['new_branch']) : '';
-        
-        if (empty($repo_id) || empty($new_branch)) {
-            wp_send_json_error(array('message' => __('Missing required parameters.', 'wp-git-plugins')));
-        }
-        
-        // Get repository data
-        $repo = $this->db->get_repo($repo_id);
-        if (!$repo) {
-            wp_send_json_error(array('message' => __('Repository not found.', 'wp-git-plugins')));
-        }
-        
-        // Prepare repository data for change_repository_branch
-        $repo_data = array(
-            'url' => $repo->git_repo_url,
-            'owner' => $repo->gh_owner,
-            'name' => $repo->gh_name,
-            'repo_name' => $repo->name
-        );
-        
-        // Switch the branch
-        $result = $this->change_repository_branch($repo_data, $new_branch);
-        
-        if (is_wp_error($result)) {
-            wp_send_json_error(array('message' => $result->get_error_message()));
-        }
-        
-        // Reactivate the plugin if it was active
-        if (is_plugin_active($repo->plugin_slug)) {
-            activate_plugin($repo->plugin_slug);
-        }
-        
-        wp_send_json_success(array(
-            'message' => sprintf(__('Successfully switched to branch: %s', 'wp-git-plugins'), $new_branch)
-        ));
-    }
-    
-    public function get_local_repositories() {
+     */    public function get_local_repositories() {
         $rows = $this->db->get_repos();
         $local_repos = [];
 
@@ -165,7 +108,7 @@ class WP_Git_Plugins_Repository {
 
         // Determine if private (check if token is set and URL is GitHub)
         $is_private = (!empty($this->github_token) && strpos($repo_url, 'github.com') !== false) ? 1 : 0;
-        $latest_version = $this->get_latest_version_from_github($owner, $name, $branch, $repo_id ?? null);
+        
         // Get the latest version from GitHub
         $latest_version = $this->get_latest_version_from_github($owner, $name, $branch);
         if (is_wp_error($latest_version)) {
@@ -272,11 +215,6 @@ class WP_Git_Plugins_Repository {
         $url = 'https://api.github.com/repos/' . $owner . '/' . $repo;
         if (!empty($endpoint)) {
             $url .= '/' . ltrim($endpoint, '/');
-        }
-        
-        // Add authentication token if available
-        if (!empty($this->github_token)) {
-            $url = add_query_arg('access_token', $this->github_token, $url);
         }
         
         return $url;
@@ -559,6 +497,157 @@ class WP_Git_Plugins_Repository {
         }
         
         return $branch_names;
+    }
+    
+    /**
+     * AJAX handler for getting repository branches.
+     *
+     * @since 1.0.0
+     */
+    public function ajax_get_branches() {
+        try {
+            // Verify AJAX request
+            if (!defined('DOING_AJAX') || !DOING_AJAX) {
+                wp_send_json_error(['message' => __('Invalid request', 'wp-git-plugins')], 400);
+            }
+
+            // Accept both _ajax_nonce and nonce for compatibility
+            $nonce = isset($_REQUEST['_ajax_nonce']) ? $_REQUEST['_ajax_nonce'] : (isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '');
+            if (empty($nonce) || !wp_verify_nonce($nonce, 'wp_git_plugins_ajax')) {
+                wp_send_json_error(['message' => __('Security check failed', 'wp-git-plugins')], 403);
+            }
+
+            // Check user capabilities
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(['message' => __('You do not have permission to view branches', 'wp-git-plugins')], 403);
+            }
+            
+            // Support both repo_url (for add repo form) and repo_id (for branch selector)
+            $repo_url = isset($_POST['repo_url']) ? esc_url_raw($_POST['repo_url']) : '';
+            $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+            $gh_owner = isset($_POST['gh_owner']) ? sanitize_text_field($_POST['gh_owner']) : '';
+            $gh_name = isset($_POST['gh_name']) ? sanitize_text_field($_POST['gh_name']) : '';
+            $github_token = isset($_POST['github_token']) ? sanitize_text_field($_POST['github_token']) : '';
+            
+            // Log incoming parameters for debugging
+            error_log('WP Git Plugins - AJAX get_branches called with: ' . json_encode([
+                'repo_url' => $repo_url,
+                'repo_id' => $repo_id,
+                'gh_owner' => $gh_owner,
+                'gh_name' => $gh_name
+            ]));
+            
+            // Determine owner and repo name
+            $owner = '';
+            $name = '';
+            
+            if (!empty($gh_owner) && !empty($gh_name)) {
+                // Using data from existing repository
+                $owner = $gh_owner;
+                $name = $gh_name;
+                error_log('WP Git Plugins - Using gh_owner/gh_name: ' . $owner . '/' . $name);
+            } elseif (!empty($repo_url)) {
+                // Parse repository URL
+                $parsed = $this->parse_github_url($repo_url);
+                if (is_wp_error($parsed)) {
+                    throw new Exception($parsed->get_error_message());
+                }
+                $owner = $parsed['owner'];
+                $name = $parsed['name'];
+                error_log('WP Git Plugins - Parsed from URL: ' . $owner . '/' . $name);
+            } elseif (!empty($repo_id)) {
+                // Get repository data from database
+                $repo = $this->get_local_repository($repo_id);
+                if (empty($repo)) {
+                    throw new Exception(__('Repository not found.', 'wp-git-plugins'));
+                }
+                $owner = $repo['gh_owner'] ?? '';
+                $name = $repo['gh_name'] ?? '';
+                error_log('WP Git Plugins - From DB repo_id ' . $repo_id . ': ' . $owner . '/' . $name);
+            }
+            
+            if (empty($owner) || empty($name)) {
+                throw new Exception(__('Repository owner and name are required.', 'wp-git-plugins'));
+            }
+            
+            // Update GitHub token if provided
+            if (!empty($github_token) && $this->settings) {
+                $this->settings->set_github_token($github_token);
+                $this->github_token = $github_token;
+            }
+            
+            error_log('WP Git Plugins - Fetching branches for: ' . $owner . '/' . $name);
+            $branches = $this->get_github_branches($owner, $name);
+            if (is_wp_error($branches)) {
+                error_log('WP Git Plugins - Error fetching branches: ' . $branches->get_error_message());
+                throw new Exception($branches->get_error_message());
+            }
+            
+            error_log('WP Git Plugins - Successfully fetched branches: ' . json_encode($branches));
+            
+            wp_send_json_success([
+                'branches' => $branches,
+                'default_branch' => in_array('main', $branches) ? 'main' : (in_array('master', $branches) ? 'master' : ($branches[0] ?? 'main'))
+            ]);
+            
+        } catch (Exception $e) {
+            $error_message = sprintf(__('Error fetching branches: %s', 'wp-git-plugins'), $e->getMessage());
+            error_log('WP Git Plugins: ' . $error_message);
+            wp_send_json_error(['message' => $error_message]);
+        }
+    }
+    
+    /**
+     * Get the latest version from GitHub for a repository
+     * 
+     * @param string $owner Repository owner
+     * @param string $repo Repository name
+     * @param string $branch Branch name
+     * @return string|WP_Error Version string or WP_Error on failure
+     */
+    public function get_latest_version_from_github($owner, $repo, $branch = 'main') {
+        // Try to get version from the plugin file in the repository
+        $api_url = sprintf('https://api.github.com/repos/%s/%s/contents/%s.php?ref=%s', 
+            $owner, $repo, $repo, $branch);
+        
+        $args = [];
+        if (!empty($this->github_token)) {
+            $args['headers'] = [
+                'Authorization' => 'token ' . $this->github_token,
+                'Accept' => 'application/vnd.github.v3+json'
+            ];
+        }
+        
+        $response = wp_remote_get($api_url, $args);
+        
+        if (is_wp_error($response)) {
+            return '0.0.0'; // Return default version instead of error
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        if ($response_code === 200) {
+            $content = json_decode(wp_remote_retrieve_body($response), true);
+            if (isset($content['content'])) {
+                $decoded_content = base64_decode($content['content']);
+                // Look for version in the plugin header
+                if (preg_match('/Version:\s*([^\n\r]+)/i', $decoded_content, $matches)) {
+                    return trim($matches[1]);
+                }
+            }
+        }
+        
+        // Fallback: try to get latest release tag
+        $api_url = sprintf('https://api.github.com/repos/%s/%s/releases/latest', $owner, $repo);
+        $response = wp_remote_get($api_url, $args);
+        
+        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+            $release = json_decode(wp_remote_retrieve_body($response), true);
+            if (isset($release['tag_name'])) {
+                return ltrim($release['tag_name'], 'v'); // Remove 'v' prefix if present
+            }
+        }
+        
+        return '0.0.0'; // Default version
     }
     
     /**
