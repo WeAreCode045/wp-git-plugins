@@ -162,7 +162,7 @@ jQuery(document).ready(function($) {
         });
     });
 
-   // Handle branch selection
+       // Handle branch selection
     $(document).on('change', '.branch-selector', function() {
         var $select = $(this);
         var $container = $select.closest('.branch-selector-container');
