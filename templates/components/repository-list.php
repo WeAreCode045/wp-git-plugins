@@ -125,22 +125,10 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                         </td>
                         <td class="version-column">
                             <?php 
-                            $installed_version = '';
-                            if ($is_plugin_installed) {
-                                $plugin_data = get_plugin_data($plugin_path, false, false);
-                                $installed_version = $plugin_data['Version'] ?? '';
-                                
-                                // If version is not in database but plugin is installed, use plugin file version
-                                if (empty($repo['version']) && !empty($installed_version)) {
-                                    // Update the database with the version from plugin file
-                                    $repository->update_repository($repo['id'], [
-                                        'version' => $installed_version,
-                                        'last_updated' => current_time('mysql')
-                                    ]);
-                                }
-                            }
-                            echo esc_html($installed_version ?: '—');
+                            $installed_version = $is_plugin_installed ? get_plugin_data($plugin_path, false, true) : '';
+                            $installed_version = $installed_version['Version'] ?? '';
                             ?>
+                            <?php echo esc_html($installed_version ?: '—'); ?>
                         </td>
                         <td class="latest-version">
                             <?php 
