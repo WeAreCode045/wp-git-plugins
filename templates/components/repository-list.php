@@ -127,6 +127,13 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                 echo '<span class="dashicons dashicons-dismiss" title="' . esc_attr__('Latest version not available', 'wp-git-plugins') . '"></span>';
                             }
                             ?>
+                            <?php if ($is_plugin_installed && $is_plugin_active) : ?>
+                                <span class="dashicons dashicons-update" title="<?php esc_attr_e('Plugin is up to date', 'wp-git-plugins'); ?>"></span>
+                            <?php elseif ($is_plugin_installed && ! $is_plugin_active) : ?>
+                                <span class="dashicons dashicons-update" title="<?php esc_attr_e('Plugin is outdated', 'wp-git-plugins'); ?>"></span>
+                            <?php else : ?>
+                                <span class="dashicons dashicons-dismiss" title="<?php esc_attr_e('Plugin is not installed', 'wp-git-plugins'); ?>"></span>
+                            <?php endif; ?>
                         </td>
                         <td class="status-column">
                             <?php if ($is_plugin_active) : ?>
