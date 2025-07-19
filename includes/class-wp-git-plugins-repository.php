@@ -346,9 +346,21 @@ public function get_latest_version_from_github($owner, $repo, $branch = 'main', 
     // Fetch the plugin file from GitHub
     $plugin_file_url = sprintf('https://raw.githubusercontent.com/%s/%s/%s/%s.php', $owner, $repo, $branch, $repo);
     $response = wp_remote_get($plugin_file_url);
-    if (!is_wp_error($response) && 200 === wp_remote_retrieve_response_code($response)) {
+    if (is_wp_error($response)) {
+        if ($this->error_handler) {
+            $this->error_handler->log_error('wp_remote_get error for ' . $plugin_file_url . ': ' . $response->get_error_message());
+        }
+    } else if (200 !== wp_remote_retrieve_response_code($response)) {
+        if ($this->error_handler) {
+            $this->error_handler->log_error('GitHub response code ' . wp_remote_retrieve_response_code($response) . ' for ' . $plugin_file_url);
+        }
+    } else {
         $file_contents = wp_remote_retrieve_body($response);
-        if (preg_match('/^\\s*Version:\\s*(.+)$/mi', $file_contents, $matches)) {
+        if (!preg_match('/^\\s*Version:\\s*(.+)$/mi', $file_contents, $matches)) {
+            if ($this->error_handler) {
+                $this->error_handler->log_error('Version header not found in plugin file from ' . $plugin_file_url);
+            }
+        } else {
             $version = trim($matches[1]);
             set_transient($transient_key, $version, HOUR_IN_SECONDS);
             // Save to database
@@ -364,6 +376,11 @@ public function get_latest_version_from_github($owner, $repo, $branch = 'main', 
             return $version;
         }
     }
+    // If we reach here, something failed, return WP_Error
+    if ($this->error_handler) {
+        $this->error_handler->log_error('Could not determine latest version from GitHub for ' . $plugin_file_url);
+    }
+    return new WP_Error('version_not_found', __('Could not determine latest version from GitHub.', 'wp-git-plugins'));
 }
 
 /**
@@ -374,8 +391,10 @@ public function get_latest_version_from_github($owner, $repo, $branch = 'main', 
  */
 public function check_repository_updates($repo_id) {
         $repo = $this->get_local_repository($repo_id);
-        
         if (!$repo) {
+            if ($this->error_handler) {
+                $this->error_handler->log_error('Repository not found for repo_id: ' . $repo_id);
+            }
             return new WP_Error('repo_not_found', __('Repository not found.', 'wp-git-plugins'));
         }
         $latest_version = $this->get_latest_version_from_github(
@@ -384,17 +403,17 @@ public function check_repository_updates($repo_id) {
             $repo['branch'],
             $repo_id
         );
-        
         if (is_wp_error($latest_version)) {
+            if ($this->error_handler) {
+                $this->error_handler->log_error('Failed to get latest version for repo_id ' . $repo_id . ': ' . $latest_version->get_error_message());
+            }
             return $latest_version;
         }
-        
         // Update the git_version in the database
         $this->db->update_repo($repo_id, [
             'git_version' => $latest_version,
             'updated_at' => current_time('mysql')
         ]);
-        
         return [
             'repo_id' => $repo_id,
             'local_version' => $repo['local_version'],
