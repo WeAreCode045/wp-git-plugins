@@ -716,3 +716,142 @@ tr.update-available .local-version {
 table.fixed {
     table-layout: auto;
 }
+
+/* Modal Styles */
+.wp-git-plugins-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wp-git-plugins-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 99999;
+}
+
+.wp-git-plugins-modal-content {
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 100001;
+}
+
+.wp-git-plugins-modal-header {
+    padding: 20px 20px 15px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wp-git-plugins-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.wp-git-plugins-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+}
+
+.wp-git-plugins-modal-close:hover {
+    color: #000;
+}
+
+.wp-git-plugins-modal-body {
+    padding: 20px;
+}
+
+.wp-git-plugins-modal-footer {
+    padding: 15px 20px 20px;
+    border-top: 1px solid #ddd;
+    text-align: right;
+}
+
+.wp-git-plugins-modal-footer .button {
+    margin-left: 10px;
+}
+
+/* Delete Options Styles */
+.delete-options {
+    margin: 20px 0;
+}
+
+.delete-option {
+    display: block;
+    padding: 15px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-option:hover {
+    border-color: #0073aa;
+    background-color: #f7f7f7;
+}
+
+.delete-option input[type="radio"] {
+    margin-right: 10px;
+    margin-top: 0;
+}
+
+.delete-option input[type="radio"]:checked {
+    background-color: #0073aa;
+}
+
+.delete-option:has(input[type="radio"]:checked) {
+    border-color: #0073aa;
+    background-color: #f0f8ff;
+}
+
+.option-title {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.option-description {
+    display: block;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Status indicators */
+.status-missing {
+    color: #d63638;
+    font-weight: 600;
+}
+
+.status-installed {
+    color: #00a32a;
+    font-weight: 600;
+}

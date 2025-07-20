@@ -51,6 +51,7 @@ class WP_Git_Plugins_Local_Plugins {
         // Register AJAX handlers for plugin operations
         add_action('wp_ajax_wp_git_plugins_activate_plugin', array($this, 'ajax_activate_plugin'));
         add_action('wp_ajax_wp_git_plugins_deactivate_plugin', array($this, 'ajax_deactivate_plugin'));
+        add_action('wp_ajax_wp_git_plugins_reinstall_plugin', array($this, 'ajax_reinstall_plugin'));
     }
 
     /**
@@ -106,6 +107,52 @@ class WP_Git_Plugins_Local_Plugins {
             
         } catch (Exception $e) {
             wp_send_json_error(['message' => sprintf(__('Error deactivating plugin: %s', 'wp-git-plugins'), $e->getMessage())]);
+        }
+    }
+
+    /**
+     * AJAX handler for reinstalling a plugin.
+     *
+     * @since 1.0.0
+     */
+    public function ajax_reinstall_plugin() {
+        try {
+            WP_Git_Plugins::verify_ajax_request('install_plugins');
+            
+            $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+            
+            if (empty($repo_id)) {
+                throw new Exception(__('Repository ID is required.', 'wp-git-plugins'));
+            }
+            
+            // Get repository data from the database
+            $db = WP_Git_Plugins_DB::get_instance();
+            $repo = $db->get_repo($repo_id);
+            
+            if (empty($repo)) {
+                throw new Exception(__('Repository not found.', 'wp-git-plugins'));
+            }
+            
+            // Convert to array if it's an object
+            if (is_object($repo)) {
+                $repo = (array) $repo;
+            }
+            
+            // Get GitHub token from settings
+            $settings = new WP_Git_Plugins_Settings('wp-git-plugins', WP_GIT_PLUGINS_VERSION);
+            $github_token = $settings->get_github_token();
+            
+            // Use the install_plugin method to reinstall
+            $result = $this->install_plugin($repo, $github_token);
+            
+            if (is_wp_error($result)) {
+                throw new Exception($result->get_error_message());
+            }
+            
+            wp_send_json_success(['message' => __('Plugin reinstalled successfully.', 'wp-git-plugins')]);
+            
+        } catch (Exception $e) {
+            wp_send_json_error(['message' => sprintf(__('Error reinstalling plugin: %s', 'wp-git-plugins'), $e->getMessage())]);
         }
     }
 
@@ -221,7 +268,7 @@ class WP_Git_Plugins_Local_Plugins {
     }
 
     /**
-     * Delete plugin files.
+     * Delete plugin files from the filesystem.
      *
      * @since 1.0.0
      * @param string $plugin_slug The plugin slug to delete
@@ -237,7 +284,25 @@ class WP_Git_Plugins_Local_Plugins {
             $this->deactivate_plugin($plugin_slug);
         }
         
-        $plugin_dir = dirname(WP_PLUGIN_DIR . '/' . $plugin_slug);
+        // Extract just the plugin directory name from the plugin slug
+        // Plugin slug could be 'plugin-dir/plugin-file.php' or just 'plugin-dir'
+        $plugin_dir_name = '';
+        if (strpos($plugin_slug, '/') !== false) {
+            // If plugin slug contains '/', take the first part (directory name)
+            $plugin_dir_name = dirname($plugin_slug);
+        } else {
+            // If no '/', assume it's already the directory name
+            $plugin_dir_name = $plugin_slug;
+        }
+        
+        $plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_dir_name;
+        
+        // Safety check: make sure we're not trying to delete the entire plugins directory
+        if ($plugin_dir === WP_PLUGIN_DIR || empty($plugin_dir_name)) {
+            error_log('WP Git Plugins - CRITICAL: Attempted to delete plugins directory or invalid path: ' . $plugin_dir);
+            return false;
+        }
+        
         if (!file_exists($plugin_dir)) {
             return true; // Already deleted
         }
@@ -249,7 +314,15 @@ class WP_Git_Plugins_Local_Plugins {
             WP_Filesystem();
         }
         
-        return $wp_filesystem->delete($plugin_dir, true);
+        $result = $wp_filesystem->delete($plugin_dir, true);
+        
+        if ($result) {
+            error_log('WP Git Plugins - Successfully deleted plugin directory: ' . $plugin_dir);
+        } else {
+            error_log('WP Git Plugins - Failed to delete plugin directory: ' . $plugin_dir);
+        }
+        
+        return $result;
     }
 
     /**

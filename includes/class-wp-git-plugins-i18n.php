@@ -111,6 +111,9 @@ class WP_Git_Plugins_i18n {
             'deactivate_error' => __('Failed to deactivate plugin', 'wp-git-plugins'),
             'delete_success' => __('Repository deleted successfully', 'wp-git-plugins'),
             'delete_error' => __('Failed to delete repository', 'wp-git-plugins'),
+            'reinstall_plugin' => __('Reinstall plugin', 'wp-git-plugins'),
+            'files_missing' => __('Files missing', 'wp-git-plugins'),
+            'confirm_reinstall' => __('Are you sure you want to reinstall this plugin?', 'wp-git-plugins'),
             
             // Error handling strings
             'ajax_error' => __('AJAX request failed', 'wp-git-plugins'),

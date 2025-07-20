@@ -248,6 +248,47 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
     <?php endif; ?>
 </div>
 
+<!-- Delete Repository Modal -->
+<div id="delete-repo-modal" class="wp-git-plugins-modal" style="display: none;">
+    <div class="wp-git-plugins-modal-content">
+        <div class="wp-git-plugins-modal-header">
+            <h3><?php _e('Delete Repository', 'wp-git-plugins'); ?></h3>
+            <button class="wp-git-plugins-modal-close">&times;</button>
+        </div>
+        <div class="wp-git-plugins-modal-body">
+            <p><strong><?php _e('What would you like to delete?', 'wp-git-plugins'); ?></strong></p>
+            <p class="description"><?php _e('Choose what should be removed when deleting this repository:', 'wp-git-plugins'); ?></p>
+            
+            <div class="delete-options">
+                <label class="delete-option">
+                    <input type="radio" name="delete_option" value="database" checked>
+                    <span class="option-title"><?php _e('Repository data only', 'wp-git-plugins'); ?></span>
+                    <span class="option-description"><?php _e('Remove the repository from the list but keep the plugin files', 'wp-git-plugins'); ?></span>
+                </label>
+                
+                <label class="delete-option">
+                    <input type="radio" name="delete_option" value="files">
+                    <span class="option-title"><?php _e('Plugin files only', 'wp-git-plugins'); ?></span>
+                    <span class="option-description"><?php _e('Delete the plugin files but keep the repository in the list', 'wp-git-plugins'); ?></span>
+                </label>
+                
+                <label class="delete-option">
+                    <input type="radio" name="delete_option" value="both">
+                    <span class="option-title"><?php _e('Both repository data and plugin files', 'wp-git-plugins'); ?></span>
+                    <span class="option-description"><?php _e('Completely remove everything related to this repository', 'wp-git-plugins'); ?></span>
+                </label>
+            </div>
+        </div>
+        <div class="wp-git-plugins-modal-footer">
+            <button class="button button-secondary wp-git-plugins-modal-close"><?php _e('Cancel', 'wp-git-plugins'); ?></button>
+            <button class="button button-primary" id="confirm-delete-repo"><?php _e('Delete', 'wp-git-plugins'); ?></button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal backdrop -->
+<div id="wp-git-plugins-modal-backdrop" class="wp-git-plugins-modal-backdrop" style="display: none;"></div>
+
 <div id="update-results" style="margin-top: 20px; display: none;">
     <h3><?php esc_html_e('Update Check Results', 'wp-git-plugins'); ?></h3>
     <div id="update-results-content"></div>

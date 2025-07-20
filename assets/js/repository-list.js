@@ -17,39 +17,155 @@ function showNotice(type, message) {
 }
 
 jQuery(document).ready(function($) {
+    // Store repository data for deletion
+    var deleteRepositoryData = null;
 
-    // Handle delete action
+    // Handle delete action - show modal instead of immediate deletion
     $('.delete-repo').on('click', function(e) {
         e.preventDefault();
-        if (!confirm(wpGitPlugins.i18n.confirm_delete)) {
+        
+        var $button = $(this);
+        var repoId = $button.data('id');
+        var repoName = $button.data('name');
+        
+        // Store repository data
+        deleteRepositoryData = {
+            id: repoId,
+            name: repoName,
+            button: $button
+        };
+        
+        // Show modal
+        showDeleteModal();
+    });
+
+    // Modal functions
+    function showDeleteModal() {
+        $('#delete-repo-modal, #wp-git-plugins-modal-backdrop').show();
+        $('body').addClass('modal-open').css('overflow', 'hidden');
+    }
+
+    function hideDeleteModal() {
+        $('#delete-repo-modal, #wp-git-plugins-modal-backdrop').hide();
+        $('body').removeClass('modal-open').css('overflow', '');
+        deleteRepositoryData = null;
+    }
+
+    // Modal close handlers
+    $('.wp-git-plugins-modal-close, #wp-git-plugins-modal-backdrop').on('click', function(e) {
+        e.preventDefault();
+        hideDeleteModal();
+    });
+
+    // Confirm delete button handler
+    $('#confirm-delete-repo').on('click', function(e) {
+        e.preventDefault();
+        
+        if (!deleteRepositoryData) {
             return;
         }
-        var $button = $(this);
+        
+        var deleteOption = $('input[name="delete_option"]:checked').val();
+        performDelete(deleteRepositoryData, deleteOption);
+        hideDeleteModal();
+    });
+
+    // Perform the actual deletion based on selected option
+    function performDelete(repoData, deleteOption) {
+        var $button = repoData.button;
         var $row = $button.closest('tr');
-        var repoId = $button.data('id');
+        
+        // Disable button and show loading
         $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + wpGitPlugins.i18n.deleting);
+        
         $.ajax({
             url: wpGitPlugins.ajax_url,
             type: 'POST',
             data: {
                 action: 'wp_git_plugins_delete_repository',
                 _ajax_nonce: wpGitPlugins.ajax_nonce,
-                repo_id: repoId
+                repo_id: repoData.id,
+                delete_option: deleteOption
             },
             success: function(response) {
                 if (response.success) {
-                    $row.fadeOut(400, function() {
-                        $(this).remove();
+                    if (deleteOption === 'files') {
+                        // If only files were deleted, show reinstall button
+                        showReinstallButton($row, repoData.id);
                         showNotice('success', response.data.message || wpGitPlugins.i18n.delete_success);
-                    });
+                    } else if (deleteOption === 'database' || deleteOption === 'both') {
+                        // If database record was deleted, remove the row
+                        $row.fadeOut(400, function() {
+                            $(this).remove();
+                            showNotice('success', response.data.message || wpGitPlugins.i18n.delete_success);
+                        });
+                    }
                 } else {
                     showNotice('error', response.data.message || wpGitPlugins.i18n.delete_error);
-                    $button.prop('disabled', false).html(wpGitPlugins.i18n.delete);
+                    $button.prop('disabled', false).html('<span class="dashicons dashicons-trash"></span>');
                 }
             },
             error: function() {
                 showNotice('error', wpGitPlugins.i18n.delete_error);
-                $button.prop('disabled', false).html(wpGitPlugins.i18n.delete);
+                $button.prop('disabled', false).html('<span class="dashicons dashicons-trash"></span>');
+            }
+        });
+    }
+
+    // Show reinstall button when only files were deleted
+    function showReinstallButton($row, repoId) {
+        var $actionCell = $row.find('.action-buttons');
+        var $deleteButton = $actionCell.find('.delete-repo');
+        
+        // Replace delete button with reinstall button
+        $deleteButton.removeClass('delete-repo')
+                    .addClass('reinstall-plugin')
+                    .attr('data-repo-id', repoId)
+                    .attr('title', wpGitPlugins.i18n.reinstall_plugin || 'Reinstall plugin')
+                    .prop('disabled', false)
+                    .html('<span class="dashicons dashicons-download"></span>');
+        
+        // Update status to show files are missing
+        var $statusCell = $row.find('.plugin-status');
+        $statusCell.html('<span class="status-missing">' + (wpGitPlugins.i18n.files_missing || 'Files missing') + '</span>');
+    }
+
+    // Handle reinstall action
+    $(document).on('click', '.reinstall-plugin', function(e) {
+        e.preventDefault();
+        
+        var $button = $(this);
+        var repoId = $button.data('repo-id');
+        
+        if (!confirm(wpGitPlugins.i18n.confirm_reinstall || 'Are you sure you want to reinstall this plugin?')) {
+            return;
+        }
+        
+        $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + (wpGitPlugins.i18n.installing || 'Installing...'));
+        
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_reinstall_plugin',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || (wpGitPlugins.i18n.plugin_installed || 'Plugin installed successfully'));
+                    // Reload page to update status
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showNotice('error', response.data.message || (wpGitPlugins.i18n.plugin_installation_failed || 'Plugin installation failed'));
+                    $button.prop('disabled', false).html('<span class="dashicons dashicons-download"></span>');
+                }
+            },
+            error: function() {
+                showNotice('error', wpGitPlugins.i18n.plugin_installation_failed || 'Plugin installation failed');
+                $button.prop('disabled', false).html('<span class="dashicons dashicons-download"></span>');
             }
         });
     });

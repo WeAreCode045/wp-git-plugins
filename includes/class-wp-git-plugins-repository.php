@@ -396,6 +396,7 @@ class WP_Git_Plugins_Repository {
             WP_Git_Plugins::verify_ajax_request('delete_plugins');
             
             $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+            $delete_option = isset($_POST['delete_option']) ? sanitize_text_field($_POST['delete_option']) : 'both';
             
             if (empty($repo_id)) {
                 throw new Exception(__('Repository ID is required.', 'wp-git-plugins'));
@@ -406,18 +407,48 @@ class WP_Git_Plugins_Repository {
                 throw new Exception(__('Repository not found.', 'wp-git-plugins'));
             }
             
-            $result = $this->delete_local_repository($repo_id);
-            if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
+            $message = '';
+            
+            // Handle different delete options
+            switch ($delete_option) {
+                case 'database':
+                    // Delete only database record
+                    $result = $this->delete_local_repository($repo_id);
+                    if (is_wp_error($result)) {
+                        throw new Exception($result->get_error_message());
+                    }
+                    $message = __('Repository removed from list successfully.', 'wp-git-plugins');
+                    break;
+                    
+                case 'files':
+                    // Delete only plugin files
+                    if (!empty($repo['plugin_slug'])) {
+                        $local_plugins = WP_Git_Plugins_Local_Plugins::get_instance();
+                        $files_deleted = $local_plugins->delete_plugin_files($repo['plugin_slug']);
+                        if (!$files_deleted) {
+                            throw new Exception(__('Failed to delete plugin files.', 'wp-git-plugins'));
+                        }
+                    }
+                    $message = __('Plugin files deleted successfully.', 'wp-git-plugins');
+                    break;
+                    
+                case 'both':
+                default:
+                    // Delete both database record and plugin files
+                    $result = $this->delete_local_repository($repo_id);
+                    if (is_wp_error($result)) {
+                        throw new Exception($result->get_error_message());
+                    }
+                    
+                    if (!empty($repo['plugin_slug'])) {
+                        $local_plugins = WP_Git_Plugins_Local_Plugins::get_instance();
+                        $local_plugins->delete_plugin_files($repo['plugin_slug']);
+                    }
+                    $message = __('Repository and plugin files deleted successfully.', 'wp-git-plugins');
+                    break;
             }
             
-            // Delete plugin files if plugin slug exists
-            if (!empty($repo['plugin_slug'])) {
-                $local_plugins = WP_Git_Plugins_Local_Plugins::get_instance();
-                $local_plugins->delete_plugin_files($repo['plugin_slug']);
-            }
-            
-            wp_send_json_success(['message' => __('Repository deleted successfully.', 'wp-git-plugins')]);
+            wp_send_json_success(['message' => $message]);
             
         } catch (Exception $e) {
             wp_send_json_error(['message' => sprintf(__('Error deleting repository: %s', 'wp-git-plugins'), $e->getMessage())]);
