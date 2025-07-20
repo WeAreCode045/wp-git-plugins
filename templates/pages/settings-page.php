@@ -7,7 +7,7 @@ if (!defined('ABSPATH')) {
 $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
 ?>
 <div class="wrap">
-    <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+    <h1><?php echo esc_html(text: get_admin_page_title()); ?></h1>
     
     <?php settings_errors('wpgp_messages'); ?>
     

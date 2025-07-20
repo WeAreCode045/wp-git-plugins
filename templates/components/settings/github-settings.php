@@ -7,9 +7,7 @@ if (!defined('ABSPATH')) {
 // Get current settings
 $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
 ?>
-<div class="wp-git-plugins-card">
-    <h2><?php esc_html_e('GitHub Settings', 'wp-git-plugins'); ?></h2>
-    
+<div class="wp-git-plugins-card">    
     <form method="post" action="options.php">
         <?php 
         // Output security fields for the registered setting
