@@ -1,61 +1,56 @@
 <?php
 // /templates/components/settings/module-settings.php
-if (!defined('ABSPATH')) {
+if (!defined("ABSPATH")) {
     exit; // Exit if accessed directly
+}
+
+// Get modules manager instance if available
+$modules_manager = null;
+$available_modules = [];
+
+if (class_exists("WP_Git_Plugins_Modules")) {
+    try {
+        $modules_manager = WP_Git_Plugins_Modules::get_instance();
+        $modules_manager->scan_modules();
+        $available_modules = $modules_manager->get_available_modules();
+    } catch (Exception $e) {
+        $available_modules = [];
+    }
 }
 ?>
 <div class="wp-git-plugins-card">
-    <h2><?php esc_html_e('Module Management', 'wp-git-plugins'); ?></h2>
+    <h2><?php esc_html_e("Module Management", "wp-git-plugins"); ?></h2>
     
-    <div style="background: #f0f0f0; padding: 20px; border: 1px solid #ccc; margin: 20px 0;">
-        <h3>Module Management Test</h3>
-        <p>This tab is now working!</p>
-        <p><strong>Current time:</strong> <?php echo date('Y-m-d H:i:s'); ?></p>
+    <!-- Module Status -->
+    <div style="background: #e7f3ff; padding: 15px; border: 1px solid #0073aa; margin: 20px 0; border-radius: 4px;">
+        <h3>Module System Status</h3>
+        <p><strong>Modules Manager:</strong> <?php echo class_exists("WP_Git_Plugins_Modules") ? "✓ Available" : "✗ Not Available"; ?></p>
+        <p><strong>Available Modules:</strong> <?php echo count($available_modules); ?></p>
+        <?php if (!empty($available_modules)) : ?>
+            <p><strong>Found Modules:</strong> <?php echo implode(", ", array_keys($available_modules)); ?></p>
+        <?php endif; ?>
     </div>
     
     <!-- Module Upload Section -->
     <div class="module-upload-section">
-        <h3><?php esc_html_e('Upload Module', 'wp-git-plugins'); ?></h3>
-        
-        <form id="module-upload-form" enctype="multipart/form-data">
-            <?php wp_nonce_field('wpgp_upload_module', '_ajax_nonce'); ?>
-            
-            <table class="form-table" role="presentation">
-                <tbody>
-                    <tr>
-                        <th scope="row">
-                            <label for="module-file">
-                                <?php esc_html_e('Module ZIP File', 'wp-git-plugins'); ?>
-                            </label>
-                        </th>
-                        <td>
-                            <input type="file" 
-                                   id="module-file" 
-                                   name="module_file" 
-                                   accept=".zip" 
-                                   required />
-                            <p class="description">
-                                <?php esc_html_e('Select a ZIP file containing the module to upload.', 'wp-git-plugins'); ?>
-                            </p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <p class="submit">
-                <button type="submit" class="button button-primary">
-                    <span class="dashicons dashicons-upload"></span>
-                    <?php esc_html_e('Upload Module', 'wp-git-plugins'); ?>
-                </button>
-                <span class="spinner" style="display: none;"></span>
-            </p>
-        </form>
+        <h3><?php esc_html_e("Upload Module", "wp-git-plugins"); ?></h3>
+        <p>Module upload functionality will be implemented here.</p>
     </div>
     
-    <!-- Modules List Section -->
+    <!-- Available Modules Section -->
     <div class="installed-modules-section">
-        <h3><?php esc_html_e('Available Modules', 'wp-git-plugins'); ?></h3>
+        <h3><?php esc_html_e("Available Modules", "wp-git-plugins"); ?></h3>
         
-        <p>Module management functionality will be added here once the tab is working properly.</p>
+        <?php if (empty($available_modules)) : ?>
+            <div class="no-modules-message">
+                <p><?php esc_html_e("No modules found.", "wp-git-plugins"); ?></p>
+            </div>
+        <?php else : ?>
+            <ul>
+                <?php foreach ($available_modules as $module_slug => $module_info) : ?>
+                    <li><strong><?php echo esc_html($module_info["name"] ?? $module_slug); ?></strong> - <?php echo esc_html($module_info["version"] ?? "1.0.0"); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
     </div>
 </div>
