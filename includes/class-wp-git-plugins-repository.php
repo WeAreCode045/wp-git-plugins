@@ -611,15 +611,62 @@ class WP_Git_Plugins_Repository {
             $local_version = '';
             $plugin_slug = $repo_data->plugin_slug ?? '';
             
+            error_log("WP Git Plugins - Checking local version for plugin_slug: {$plugin_slug}");
+            
             if (!empty($plugin_slug)) {
                 $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_slug;
+                error_log("WP Git Plugins - Looking for plugin at path: {$plugin_path}");
                 
                 if (file_exists($plugin_path)) {
                     $plugin_data = get_plugin_data($plugin_path, false, false);
                     $local_version = $plugin_data['Version'] ?? '';
                     error_log("WP Git Plugins - Found local version: {$local_version} for plugin: {$plugin_slug}");
+                    error_log("WP Git Plugins - Plugin data: " . print_r($plugin_data, true));
                 } else {
                     error_log("WP Git Plugins - Plugin file not found at: {$plugin_path}");
+                    
+                    // Try to find the plugin using alternative methods
+                    $all_plugins = get_plugins();
+                    $repo_name = $repo_data->gh_name ?? '';
+                    
+                    error_log("WP Git Plugins - Searching for plugin with repo name: {$repo_name}");
+                    error_log("WP Git Plugins - Available plugins: " . implode(', ', array_keys($all_plugins)));
+                    
+                    // Look for plugin by directory name or plugin name
+                    foreach ($all_plugins as $plugin_file => $plugin_info) {
+                        $plugin_dir = dirname($plugin_file);
+                        
+                        // Check if plugin directory matches repo name (with various patterns)
+                        if (strtolower($plugin_dir) === strtolower($repo_name) ||
+                            strtolower($plugin_dir) === strtolower($repo_name . '-main') ||
+                            strpos(strtolower($plugin_dir), strtolower($repo_name)) === 0) {
+                            
+                            $found_plugin_path = WP_PLUGIN_DIR . '/' . $plugin_file;
+                            error_log("WP Git Plugins - Found matching plugin: {$plugin_file} at {$found_plugin_path}");
+                            
+                            if (file_exists($found_plugin_path)) {
+                                $plugin_data = get_plugin_data($found_plugin_path, false, false);
+                                $local_version = $plugin_data['Version'] ?? '';
+                                error_log("WP Git Plugins - Found local version: {$local_version} for matched plugin: {$plugin_file}");
+                                
+                                // Update the plugin_slug in database for future use
+                                global $wpdb;
+                                $wpdb->update(
+                                    $wpdb->prefix . 'wpgp_repos',
+                                    ['plugin_slug' => $plugin_file],
+                                    ['id' => $repo_id],
+                                    ['%s'],
+                                    ['%d']
+                                );
+                                error_log("WP Git Plugins - Updated plugin_slug in database to: {$plugin_file}");
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (empty($local_version)) {
+                        error_log("WP Git Plugins - Could not find any matching plugin for repo: {$repo_name}");
+                    }
                 }
             } else {
                 error_log("WP Git Plugins - No plugin slug found for repository");
