@@ -3,14 +3,16 @@
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
-
-// Get modules manager instance
-$modules_manager = WP_Git_Plugins_Modules::get_instance();
-$installed_modules = $modules_manager->get_installed_modules();
 ?>
 <div class="wp-git-plugins-card">
+    <h2><?php esc_html_e('Module Management', 'wp-git-plugins'); ?></h2>
     
-<div id="modules-management">
+    <div style="background: #f0f0f0; padding: 20px; border: 1px solid #ccc; margin: 20px 0;">
+        <h3>Module Management Test</h3>
+        <p>This tab is now working!</p>
+        <p><strong>Current time:</strong> <?php echo date('Y-m-d H:i:s'); ?></p>
+    </div>
+    
     <!-- Module Upload Section -->
     <div class="module-upload-section">
         <h3><?php esc_html_e('Upload Module', 'wp-git-plugins'); ?></h3>
@@ -50,69 +52,10 @@ $installed_modules = $modules_manager->get_installed_modules();
         </form>
     </div>
     
-    <!-- Installed Modules Section -->
+    <!-- Modules List Section -->
     <div class="installed-modules-section">
-        <h3><?php esc_html_e('Installed Modules', 'wp-git-plugins'); ?></h3>
+        <h3><?php esc_html_e('Available Modules', 'wp-git-plugins'); ?></h3>
         
-        <?php if (empty($installed_modules)) : ?>
-            <div class="no-modules-message">
-                <p><?php esc_html_e('No modules installed yet.', 'wp-git-plugins'); ?></p>
-                <p><?php esc_html_e('Upload a module ZIP file to get started.', 'wp-git-plugins'); ?></p>
-            </div>
-        <?php else : ?>
-            <table class="wp-list-table widefat fixed striped">
-                <thead>
-                    <tr>
-                        <th scope="col"><?php esc_html_e('Module', 'wp-git-plugins'); ?></th>
-                        <th scope="col"><?php esc_html_e('Version', 'wp-git-plugins'); ?></th>
-                        <th scope="col"><?php esc_html_e('Description', 'wp-git-plugins'); ?></th>
-                        <th scope="col"><?php esc_html_e('Status', 'wp-git-plugins'); ?></th>
-                        <th scope="col"><?php esc_html_e('Actions', 'wp-git-plugins'); ?></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($installed_modules as $module_slug => $module_info) : 
-                        $is_active = $modules_manager->is_module_active($module_slug);
-                    ?>
-                        <tr>
-                            <td>
-                                <strong><?php echo esc_html($module_info['name']); ?></strong>
-                                <?php if (!empty($module_info['author'])) : ?>
-                                    <br><span class="description"><?php printf(__('by %s', 'wp-git-plugins'), esc_html($module_info['author'])); ?></span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php echo esc_html($module_info['version'] ?? '1.0.0'); ?>
-                            </td>
-                            <td>
-                                <?php echo esc_html($module_info['description'] ?? ''); ?>
-                            </td>
-                            <td>
-                                <?php if ($is_active) : ?>
-                                    <span class="module-status active"><?php esc_html_e('Active', 'wp-git-plugins'); ?></span>
-                                <?php else : ?>
-                                    <span class="module-status inactive"><?php esc_html_e('Inactive', 'wp-git-plugins'); ?></span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="module-actions">
-                                <?php if ($is_active) : ?>
-                                    <button type="button" class="button deactivate-module" data-module="<?php echo esc_attr($module_slug); ?>">
-                                        <?php esc_html_e('Deactivate', 'wp-git-plugins'); ?>
-                                    </button>
-                                <?php else : ?>
-                                    <button type="button" class="button button-primary activate-module" data-module="<?php echo esc_attr($module_slug); ?>">
-                                        <?php esc_html_e('Activate', 'wp-git-plugins'); ?>
-                                    </button>
-                                <?php endif; ?>
-                                
-                                <button type="button" class="button delete-module" data-module="<?php echo esc_attr($module_slug); ?>">
-                                    <?php esc_html_e('Delete', 'wp-git-plugins'); ?>
-                                </button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
+        <p>Module management functionality will be added here once the tab is working properly.</p>
     </div>
 </div>
