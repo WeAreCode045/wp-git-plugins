@@ -8,6 +8,8 @@ if (!defined('ABSPATH')) {
 $modules_manager = WP_Git_Plugins_Modules::get_instance();
 $installed_modules = $modules_manager->get_installed_modules();
 ?>
+<div class="wp-git-plugins-card">
+    
 <div id="modules-management">
     <!-- Module Upload Section -->
     <div class="module-upload-section">
