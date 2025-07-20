@@ -47,6 +47,8 @@ require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-settings.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-github-api.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-local-plugins.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-branch.php';
+require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-modules.php';
+require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-debug.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-repository.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-admin.php';
 
