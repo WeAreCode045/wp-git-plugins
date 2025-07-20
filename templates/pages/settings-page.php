@@ -30,7 +30,7 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
                                 <a href="#git-settings" class="nav-tab nav-tab-active">
                                     <?php esc_html_e('Github Settings', 'wp-git-plugins'); ?>
                                 </a>
-                                <a href="#model-settings" class="nav-tab">
+                                <a href="#module-settings" class="nav-tab">
                                     <?php esc_html_e('Model Settings', 'wp-git-plugins'); ?>
                                 </a>
                             </h2>
@@ -42,7 +42,7 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
                                 </div>
                                 
                                 <!-- Model Settings Tab -->
-                                <div id="model-settings" class="tab-content">
+                                <div id="module-settings" class="tab-content">
                                     <?php include WP_GIT_PLUGINS_DIR . 'templates/components/settings/module-settings.php'; ?>
                                 </div>
                             </div>
