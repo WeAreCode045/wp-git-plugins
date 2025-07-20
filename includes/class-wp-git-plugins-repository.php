@@ -535,24 +535,20 @@ class WP_Git_Plugins_Repository {
      *
      * @since 1.0.0
      */
+
     public function ajax_check_version() {
-        // Verify nonce
-        if (!check_ajax_referer('wp_git_plugins_nonce', '_ajax_nonce', false)) {
-            wp_send_json_error([
-                'message' => __('Security check failed. Please refresh the page and try again.', 'wp-git-plugins')
-            ]);
-        }
-        
-        // Get repository ID
-        $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
-        
-        if (empty($repo_id)) {
-            wp_send_json_error([
-                'message' => __('Invalid repository ID.', 'wp-git-plugins')
-            ]);
-        }
-        
         try {
+            WP_Git_Plugins::verify_ajax_request('manage_options');
+            
+            // Get repository ID
+            $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+        
+            if (empty($repo_id)) {
+                wp_send_json_error([
+                    'message' => __('Invalid repository ID.', 'wp-git-plugins')
+                ]);
+            }
+            
             // Get repository data from database
             $repo_data = $this->db->get_repo($repo_id);
             
