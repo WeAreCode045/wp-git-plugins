@@ -114,8 +114,13 @@ jQuery(document).ready(function($) {
 
     // Show reinstall button when only files were deleted
     function showReinstallButton($row, repoId) {
+        console.log('showReinstallButton called with repo ID:', repoId);
+        
         var $actionCell = $row.find('.action-buttons');
         var $deleteButton = $actionCell.find('.delete-repo');
+        
+        console.log('Found action cell:', $actionCell.length);
+        console.log('Found delete button:', $deleteButton.length);
         
         // Replace delete button with reinstall button
         $deleteButton.removeClass('delete-repo')
@@ -125,23 +130,41 @@ jQuery(document).ready(function($) {
                     .prop('disabled', false)
                     .html('<span class="dashicons dashicons-download"></span>');
         
+        console.log('Button classes after change:', $deleteButton.attr('class'));
+        console.log('Button data-repo-id:', $deleteButton.attr('data-repo-id'));
+        
         // Update status to show files are missing
         var $statusCell = $row.find('.plugin-status');
         $statusCell.html('<span class="status-missing">' + (wpGitPlugins.i18n.files_missing || 'Files missing') + '</span>');
+        
+        console.log('Status updated to files missing');
     }
 
     // Handle reinstall action
     $(document).on('click', '.reinstall-plugin', function(e) {
         e.preventDefault();
+        console.log('Reinstall button clicked');
         
         var $button = $(this);
         var repoId = $button.data('repo-id');
+        
+        console.log('Repo ID:', repoId);
+        console.log('AJAX URL:', wpGitPlugins.ajax_url);
+        console.log('Nonce:', wpGitPlugins.ajax_nonce);
+        
+        if (!repoId) {
+            console.error('No repo ID found');
+            showNotice('error', 'Repository ID not found');
+            return;
+        }
         
         if (!confirm(wpGitPlugins.i18n.confirm_reinstall || 'Are you sure you want to reinstall this plugin?')) {
             return;
         }
         
         $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + (wpGitPlugins.i18n.installing || 'Installing...'));
+        
+        console.log('Sending AJAX request for reinstall');
         
         $.ajax({
             url: wpGitPlugins.ajax_url,
@@ -152,6 +175,7 @@ jQuery(document).ready(function($) {
                 repo_id: repoId
             },
             success: function(response) {
+                console.log('Reinstall response:', response);
                 if (response.success) {
                     showNotice('success', response.data.message || (wpGitPlugins.i18n.plugin_installed || 'Plugin installed successfully'));
                     // Reload page to update status
@@ -159,11 +183,14 @@ jQuery(document).ready(function($) {
                         location.reload();
                     }, 1500);
                 } else {
+                    console.error('Reinstall failed:', response);
                     showNotice('error', response.data.message || (wpGitPlugins.i18n.plugin_installation_failed || 'Plugin installation failed'));
                     $button.prop('disabled', false).html('<span class="dashicons dashicons-download"></span>');
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error('AJAX error:', {xhr: xhr, status: status, error: error});
+                console.error('Response text:', xhr.responseText);
                 showNotice('error', wpGitPlugins.i18n.plugin_installation_failed || 'Plugin installation failed');
                 $button.prop('disabled', false).html('<span class="dashicons dashicons-download"></span>');
             }
