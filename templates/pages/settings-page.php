@@ -28,7 +28,7 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
             <!-- Tab Content -->
             <div class="tab-content-wrapper">
                 <!-- GitHub Settings Tab -->
-                <div id="github-settings" class="tab-content active">
+                <div id="github-settings" class="tab-content hide">
                     <?php include WP_GIT_PLUGINS_DIR . 'templates/components/settings/github-settings.php'; ?>
                 </div>
                 
