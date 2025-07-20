@@ -104,6 +104,13 @@ class WP_Git_Plugins_i18n {
             'plugin_update_failed' => __('Plugin update failed', 'wp-git-plugins'),
             'plugin_not_found' => __('Plugin not found', 'wp-git-plugins'),
             
+            // Version checking strings
+            'checking_version' => __('Checking version...', 'wp-git-plugins'),
+            'version_check_completed' => __('Version check completed', 'wp-git-plugins'),
+            'version_check_failed' => __('Version check failed', 'wp-git-plugins'),
+            'version_up_to_date' => __('Plugin is up to date', 'wp-git-plugins'),
+            'version_outdated' => __('Plugin update available', 'wp-git-plugins'),
+            
             // Shorter plugin operation strings for JavaScript
             'activate_success' => __('Plugin activated successfully', 'wp-git-plugins'),
             'activate_error' => __('Failed to activate plugin', 'wp-git-plugins'),

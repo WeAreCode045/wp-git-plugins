@@ -196,50 +196,27 @@ class WP_Git_Plugins {
     }
 
     /**
-     * Parse GitHub URL to extract owner and repository name.
+     * Log an error message.
      * This is a global utility that can be used by any class.
-     * 
+     *
      * @since 1.0.0
-     * @param string $url GitHub repository URL
-     * @return array|WP_Error Array with 'owner' and 'name' keys, or WP_Error on failure
+     * @param string $error_message The error message to log
+     * @param string $errfile The file where the error occurred
+     * @param int $errline The line number where the error occurred
+     * @param string $backtrace Optional backtrace information
      */
-    public static function parse_github_url($url) {
-        return WP_Git_Plugins_Github_API::parse_github_url($url);
-    }
-
-    /**
-     * Get the GitHub API URL for a repository endpoint.
-     * This is a global utility that can be used by any class.
-     * @since 1.0.0
-     * @param string $owner GitHub repository owner
-     * @param string $repo GitHub repository name
-     * @param string $endpoint API endpoint (default: '')
-     * @return string GitHub API URL
-     */
-    public static function get_github_api_url($owner, $repo, $endpoint = '') {
-        $github_api = WP_Git_Plugins_Github_API::get_instance();
-        return $github_api->build_api_url($owner, $repo, $endpoint);
-    }
-
-    /**
-     * Get the download URL for a GitHub repository.
-     * This is a global utility that can be used by any class.
-     * 
-     * @since 1.0.0
-     * @param array $git_repo GitHub repository data
-     * @param string $github_token Optional GitHub token for private repos
-     * @return string Download URL
-     */
-    public static function get_download_url($git_repo, $github_token = '') {
-        $github_api = WP_Git_Plugins_Github_API::get_instance($github_token);
-        $is_private = !empty($git_repo['is_private']);
-        $branch = !empty($git_repo['branch']) ? $git_repo['branch'] : 'main';
-        
-        return $github_api->get_download_url(
-            $git_repo['gh_owner'],
-            $git_repo['gh_name'],
-            $branch,
-            $is_private
+    public static function log_error($error_message, $errfile = '', $errline = 0, $backtrace = '') {
+        $error_log = get_option('wp_git_plugins_error_log', array());
+        if (count($error_log) >= 500) {
+            $error_log = array_slice($error_log, -499, 499);
+        }
+        $error_log[] = array(
+            'time' => current_time('timestamp'),
+            'message' => $error_message,
+            'file' => $errfile,
+            'line' => $errline,
+            'backtrace' => $backtrace,
         );
+        update_option('wp_git_plugins_error_log', $error_log);
     }
 }

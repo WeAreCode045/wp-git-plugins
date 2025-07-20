@@ -358,41 +358,47 @@ class WP_Git_Plugins_Github_API {
      * @param string $branch Branch name
      * @return string|WP_Error Version string or WP_Error on failure
      */
+
     public function get_version_from_plugin_header($owner, $repo, $branch = 'main') {
-        // Try to get the main plugin file
-        $plugin_file_url = sprintf(
-            'https://raw.githubusercontent.com/%s/%s/%s/%s.php',
-            $owner,
-            $repo,
-            $branch,
-            $repo
-        );
+        // Try multiple possible plugin file patterns
+        $possible_files = [
+            $repo . '.php',                    // repo-name.php
+            'index.php',                       // index.php
+            str_replace('-', '_', $repo) . '.php', // repo_name.php (underscores)
+            'plugin.php',                      // plugin.php
+            basename($repo) . '.php'           // Just in case repo has a path
+        ];
         
-        $response = wp_remote_get($plugin_file_url, [
-            'timeout' => 10
-        ]);
-        
-        if (is_wp_error($response)) {
-            return $response;
-        }
-        
-        if (wp_remote_retrieve_response_code($response) !== 200) {
-            return new WP_Error(
-                'plugin_file_not_found',
-                __('Plugin header file not found.', 'wp-git-plugins')
+        foreach ($possible_files as $file_name) {
+            $plugin_file_url = sprintf(
+                'https://raw.githubusercontent.com/%s/%s/%s/%s',
+                $owner,
+                $repo,
+                $branch,
+                $file_name
             );
-        }
-        
-        $content = wp_remote_retrieve_body($response);
-        
-        // Look for version in the plugin header
-        if (preg_match('/Version:\s*([^\n\r]+)/i', $content, $matches)) {
-            return trim($matches[1]);
+            
+            $response = wp_remote_get($plugin_file_url, [
+                'timeout' => 10
+            ]);
+            
+            if (is_wp_error($response)) {
+                continue; // Try next file pattern
+            }
+            
+            if (wp_remote_retrieve_response_code($response) === 200) {
+                $content = wp_remote_retrieve_body($response);
+                
+                // Look for version in the plugin header
+                if (preg_match('/Version:\s*([^\n\r]+)/i', $content, $matches)) {
+                    return trim($matches[1]);
+                }
+            }
         }
         
         return new WP_Error(
-            'version_not_found',
-            __('Version not found in plugin header.', 'wp-git-plugins')
+            'plugin_file_not_found',
+            __('Plugin header file not found. Tried multiple common file patterns.', 'wp-git-plugins')
         );
     }
     
@@ -548,33 +554,5 @@ class WP_Git_Plugins_Github_API {
             "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
             $pattern
         ));
-    }
-    
-    /**
-     * Get API usage statistics
-     *
-     * @since 1.0.0
-     * @return array API usage statistics
-     */
-    public function get_api_usage() {
-        $rate_limit = $this->check_rate_limit();
-        
-        if (is_wp_error($rate_limit)) {
-            return [
-                'error' => $rate_limit->get_error_message(),
-                'authenticated' => !empty($this->github_token)
-            ];
-        }
-        
-        $core = $rate_limit['resources']['core'] ?? [];
-        
-        return [
-            'limit' => $core['limit'] ?? 0,
-            'remaining' => $core['remaining'] ?? 0,
-            'reset' => $core['reset'] ?? 0,
-            'used' => ($core['limit'] ?? 0) - ($core['remaining'] ?? 0),
-            'reset_time' => isset($core['reset']) ? date('Y-m-d H:i:s', $core['reset']) : '',
-            'authenticated' => !empty($this->github_token)
-        ];
     }
 }

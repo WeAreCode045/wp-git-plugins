@@ -22,6 +22,7 @@ class WP_Git_Plugins_Repository {
         add_action('wp_ajax_wp_git_plugins_add_repository', array($this, 'ajax_add_repository'));
         add_action('wp_ajax_wp_git_plugins_delete_repository', array($this, 'ajax_delete_repository'));
         add_action('wp_ajax_wp_git_plugins_update_repository', array($this, 'ajax_update_repository'));
+        add_action('wp_ajax_wp_git_plugins_check_version', array($this, 'ajax_check_version'));
     }
     
     
@@ -525,6 +526,97 @@ class WP_Git_Plugins_Repository {
                 'message' => sprintf(__('Error updating plugin: %s', 'wp-git-plugins'), $e->getMessage()),
                 'plugin_slug' => $plugin_slug,
                 'was_active' => $was_active
+            ]);
+        }
+    }
+    
+    /**
+     * AJAX handler for checking version from GitHub
+     *
+     * @since 1.0.0
+     */
+    public function ajax_check_version() {
+        // Verify nonce
+        if (!check_ajax_referer('wp_git_plugins_nonce', '_ajax_nonce', false)) {
+            wp_send_json_error([
+                'message' => __('Security check failed. Please refresh the page and try again.', 'wp-git-plugins')
+            ]);
+        }
+        
+        // Get repository ID
+        $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+        
+        if (empty($repo_id)) {
+            wp_send_json_error([
+                'message' => __('Invalid repository ID.', 'wp-git-plugins')
+            ]);
+        }
+        
+        try {
+            // Get repository data from database
+            $repo_data = $this->db->get_repo($repo_id);
+            
+            if (!$repo_data) {
+                wp_send_json_error([
+                    'message' => __('Repository not found.', 'wp-git-plugins')
+                ]);
+            }
+            
+            // Parse GitHub URL to get owner and repo name
+            $github_info = WP_Git_Plugins_Github_API::parse_github_url($repo_data['url']);
+            
+            if (is_wp_error($github_info)) {
+                wp_send_json_error([
+                    'message' => __('Invalid GitHub URL in repository data.', 'wp-git-plugins')
+                ]);
+            }
+            
+            $owner = $github_info['owner'];
+            $repo_name = $github_info['name'];
+            $branch = !empty($repo_data['branch']) ? $repo_data['branch'] : 'main';
+            
+            // Get version from GitHub using the GitHub API
+            $git_version = $this->github_api->get_version_from_plugin_header($owner, $repo_name, $branch);
+            
+            if (is_wp_error($git_version)) {
+                wp_send_json_error([
+                    'message' => sprintf(
+                        __('Failed to get version from GitHub: %s', 'wp-git-plugins'),
+                        $git_version->get_error_message()
+                    )
+                ]);
+            }
+            
+            // Update the git_version in the database
+            $update_result = $this->db->update_repo_version($repo_id, $git_version, true);
+            
+            if (is_wp_error($update_result)) {
+                wp_send_json_error([
+                    'message' => sprintf(
+                        __('Failed to save version to database: %s', 'wp-git-plugins'),
+                        $update_result->get_error_message()
+                    )
+                ]);
+            }
+            
+            // Success response
+            wp_send_json_success([
+                'message' => sprintf(
+                    __('Version check completed. Latest version: %s', 'wp-git-plugins'),
+                    $git_version
+                ),
+                'git_version' => $git_version,
+                'repo_id' => $repo_id
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('WP Git Plugins - Version check error for repo ID ' . $repo_id . ': ' . $e->getMessage());
+            
+            wp_send_json_error([
+                'message' => sprintf(
+                    __('Error checking version: %s', 'wp-git-plugins'),
+                    $e->getMessage()
+                )
             ]);
         }
     }

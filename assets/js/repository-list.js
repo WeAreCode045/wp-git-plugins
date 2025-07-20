@@ -259,6 +259,74 @@ jQuery(document).ready(function($) {
         });
     });
 
+    // Handle check version action
+    $(document).on('click', '.check-version', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var repoId = $button.data('id');
+
+        if (!repoId) {
+            showNotice('error', 'Repository ID not found');
+            return;
+        }
+
+        // Disable button and show loading state
+        $button.prop('disabled', true);
+        var $spinner = $button.find('.spinner');
+        var $icon = $button.find('.dashicons');
+        
+        // Hide icon and show spinner
+        $icon.hide();
+        if ($spinner.length === 0) {
+            $button.append('<span class="spinner" style="margin-top: -4px; float: none; display: inline-block;"></span>');
+            $spinner = $button.find('.spinner');
+        }
+        $spinner.show();
+
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_check_version',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || wpGitPlugins.i18n.version_check_completed);
+                    
+                    // Update the version display in the table if needed
+                    var $row = $button.closest('tr');
+                    var $versionCell = $row.find('td:nth-child(4)'); // Latest Version column
+                    if ($versionCell.length && response.data.git_version) {
+                        $versionCell.text(response.data.git_version);
+                    }
+                    
+                    // Reload page to show updated status (e.g., update button if version differs)
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showNotice('error', response.data.message || wpGitPlugins.i18n.version_check_failed);
+                }
+                
+                // Restore button state
+                $button.prop('disabled', false);
+                $spinner.hide();
+                $icon.show();
+            },
+            error: function(xhr, status, error) {
+                console.error('Version check AJAX error:', {xhr: xhr, status: status, error: error});
+                showNotice('error', wpGitPlugins.i18n.version_check_failed);
+                
+                // Restore button state
+                $button.prop('disabled', false);
+                $spinner.hide();
+                $icon.show();
+            }
+        });
+    });
+
     // Handle branch selector change
     $(document).on('change', '.branch-selector', function() {
         var $select = $(this);
