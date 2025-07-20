@@ -598,7 +598,8 @@ class WP_Git_Plugins_Repository {
             ]);
             
         } catch (Exception $e) {
-            error_log('WP Git Plugins - Version check error for repo ID ' . $repo_id . ': ' . $e->getMessage());
+            error_log('WP Git Plugins - Version check error for repo ID ' . (isset($repo_id) ? $repo_id : 'unknown') . ': ' . $e->getMessage());
+            error_log('WP Git Plugins - Exception trace: ' . $e->getTraceAsString());
             
             wp_send_json_error([
                 'message' => sprintf(

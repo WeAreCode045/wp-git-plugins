@@ -292,13 +292,18 @@ jQuery(document).ready(function($) {
                 repo_id: repoId
             },
             success: function(response) {
-                if (response.success) {
-                    showNotice('success', response.data.message || wpGitPlugins.i18n.version_check_completed);
+                console.log('Version check response:', response);
+                console.log('Response type:', typeof response);
+                console.log('Response.data:', response.data);
+                
+                if (response && response.success) {
+                    var message = (response.data && response.data.message) || wpGitPlugins.i18n.version_check_completed;
+                    showNotice('success', message);
                     
                     // Update the version display in the table if needed
                     var $row = $button.closest('tr');
                     var $versionCell = $row.find('td:nth-child(4)'); // Latest Version column
-                    if ($versionCell.length && response.data.git_version) {
+                    if ($versionCell.length && response.data && response.data.git_version) {
                         $versionCell.text(response.data.git_version);
                     }
                     
@@ -307,7 +312,8 @@ jQuery(document).ready(function($) {
                         location.reload();
                     }, 1500);
                 } else {
-                    showNotice('error', response.data.message || wpGitPlugins.i18n.version_check_failed);
+                    var errorMessage = (response && response.data && response.data.message) || wpGitPlugins.i18n.version_check_failed;
+                    showNotice('error', errorMessage);
                 }
                 
                 // Restore button state
@@ -316,8 +322,27 @@ jQuery(document).ready(function($) {
                 $icon.show();
             },
             error: function(xhr, status, error) {
-                console.error('Version check AJAX error:', {xhr: xhr, status: status, error: error});
-                showNotice('error', wpGitPlugins.i18n.version_check_failed);
+                console.error('Version check AJAX error:', {
+                    xhr: xhr,
+                    status: status,
+                    error: error,
+                    responseText: xhr.responseText
+                });
+                
+                // Try to parse error response
+                var errorMessage = wpGitPlugins.i18n.version_check_failed;
+                try {
+                    if (xhr.responseText) {
+                        var errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse && errorResponse.data && errorResponse.data.message) {
+                            errorMessage = errorResponse.data.message;
+                        }
+                    }
+                } catch (parseError) {
+                    console.log('Could not parse error response:', parseError);
+                }
+                
+                showNotice('error', errorMessage);
                 
                 // Restore button state
                 $button.prop('disabled', false);
