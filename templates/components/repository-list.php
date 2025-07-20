@@ -198,7 +198,6 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                         data-id="<?php echo esc_attr($repo['id']); ?>" 
                                         title="<?php esc_attr_e('Check for updates', 'wp-git-plugins'); ?>">
                                     <span class="dashicons dashicons-update"></span>
-                                    <span class="button-text"><?php echo esc_html($i18n_data['i18n']['check_version'] ?? 'Check Version'); ?></span>
                                     <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>
                                 </button>
                                 
@@ -213,7 +212,6 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                             data-new-version="<?php echo esc_attr($git_version); ?>"
                                             title="<?php esc_attr_e('Update plugin', 'wp-git-plugins'); ?>">
                                         <span class="dashicons dashicons-download"></span>
-                                        <span class="button-text"><?php echo esc_html($i18n_data['i18n']['update_plugin'] ?? 'Update Plugin'); ?></span>
                                         <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>
                                     </button>
                                 <?php endif; ?>
@@ -234,9 +232,8 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                     <?php endif; ?>
                                 <?php else : ?>
                                     <button class="button button-small install-plugin" 
-                                            data-repo-id="<?php echo esc_attr($repo['id']); ?>" 
-                                            title="<?php esc_attr_e('Install plugin', 'wp-git-plugins'); ?>">
-                                        <span class="dashicons dashicons-download"></span>
+                                            data-repo-id="<?php echo esc_attr($repo['id']); ?>"></button> 
+                                     <span class="dashicons dashicons-download"></span>
                                     </button>
                                 <?php endif; ?>
                                 
