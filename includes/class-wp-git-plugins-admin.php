@@ -199,15 +199,6 @@ class WP_Git_Plugins_Admin {
             return;
         }
         
-        // Enqueue main stylesheet
-        wp_enqueue_style(
-            $this->plugin_name,
-            WP_GIT_PLUGINS_URL . 'assets/css/styles.css',
-            [],
-            $this->version,
-            'all'
-        );
-        
         // Enqueue common script for shared functionality
         wp_enqueue_script(
             $this->plugin_name . '-common',
@@ -217,8 +208,6 @@ class WP_Git_Plugins_Admin {
             true
         );
         
-        // Enqueue main admin script only if needed (not for repo list)
-        // scripts.js removed; do not enqueue
         // Enqueue repository list script on dashboard page
         if ($hook === 'toplevel_page_wp-git-plugins') {
             wp_enqueue_script(

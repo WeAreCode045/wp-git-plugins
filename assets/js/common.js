@@ -22,11 +22,16 @@ function showNotice(type, message) {
 function initTabSwitching() {
     const $ = window.jQuery;
     
+    console.log('WP Git Plugins: Initializing tab switching...');
+    console.log('WP Git Plugins: Found', $('.nav-tab').length, 'tabs');
+    console.log('WP Git Plugins: Found', $('.tab-content').length, 'tab content areas');
+    
     // Handle tab switching
     $('.nav-tab').on('click', function(e) {
         e.preventDefault();
         
         var target = $(this).attr('href');
+        console.log('WP Git Plugins: Tab clicked, target:', target);
         
         // Remove active class from all tabs
         $('.nav-tab').removeClass('nav-tab-active');
@@ -39,6 +44,7 @@ function initTabSwitching() {
         
         // Show target tab content
         $(target).addClass('active');
+        console.log('WP Git Plugins: Activated tab content for:', target);
         
         // Update URL hash without scrolling
         if (history.replaceState) {
@@ -49,10 +55,13 @@ function initTabSwitching() {
     // Handle hash on page load
     if (window.location.hash) {
         var hash = window.location.hash;
+        console.log('WP Git Plugins: Page loaded with hash:', hash);
         if ($(hash).length && $('.nav-tab[href="' + hash + '"]').length) {
             $('.nav-tab[href="' + hash + '"]').trigger('click');
         }
     }
+    
+    console.log('WP Git Plugins: Tab switching initialization complete');
 }
 
 // Initialize tab switching when document is ready

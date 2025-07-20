@@ -250,18 +250,7 @@
     z-index: 1;
 }
 
-/* Tab Content */
-.tab-content {
-    display: none;
-    padding: 15px 0;
-    clear: both;
-    width: 100%;
-}
-
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.3s ease-in-out;
-}
+/* Duplicate tab content rules removed - see bottom of file for correct rules */
 
 @keyframes fadeIn {
     from { opacity: 0; }
@@ -416,13 +405,7 @@
     margin-bottom: -1px; 
 }
 
-.tab-content { 
-    display: none; 
-}
-
-.tab-content.active { 
-    display: block; 
-}
+/* Duplicate tab content rules removed - see bottom of file for correct rules */
 
 .clear-form { 
     margin: 10px 0; 
@@ -538,13 +521,7 @@
     color: #000;
 }
 
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
+/* Duplicate tab content rules removed - see bottom of file for correct rules */
 
 /* GitHub token help */
 .github-token-help {
@@ -995,12 +972,12 @@ button.button.button-secondary.wp-git-plugins-modal-close {
     padding: 20px;
 }
 
-.tab-content {
-    display: none;
+.tab-content-wrapper .tab-content {
+    display: none !important;
 }
 
-.tab-content.active {
-    display: block;
+.tab-content-wrapper .tab-content.active {
+    display: block !important;
 }
 
 /* Settings Navigation Tabs */
