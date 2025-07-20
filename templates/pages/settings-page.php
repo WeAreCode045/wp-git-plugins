@@ -44,3 +44,49 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
         </div>
     </div>
 </div>
+
+<script>
+console.log('Settings page loaded');
+jQuery(document).ready(function($) {
+    console.log('Settings page jQuery ready');
+    console.log('Found tabs:', $('.nav-tab').length);
+    console.log('Found tab content:', $('.tab-content').length);
+    
+    // Ensure initial state is correct
+    $('.tab-content').hide();
+    $('.tab-content.active').show();
+    
+    // Test direct tab click handler
+    $('.nav-tab').on('click', function(e) {
+        console.log('Tab clicked:', $(this).attr('href'));
+        e.preventDefault();
+        
+        var target = $(this).attr('href');
+        
+        // Remove active class from all tabs
+        $('.nav-tab').removeClass('nav-tab-active');
+        
+        // Add active class to clicked tab
+        $(this).addClass('nav-tab-active');
+        
+        // Hide all tab content
+        $('.tab-content').removeClass('active').hide();
+        
+        // Show target tab content
+        $(target).addClass('active').show();
+        
+        console.log('Tab switched to:', target);
+    });
+});
+</script>
+
+<style>
+/* Ensure tab content is properly controlled */
+.tab-content {
+    display: none !important;
+}
+
+.tab-content.active {
+    display: block !important;
+}
+</style>
