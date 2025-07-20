@@ -116,10 +116,12 @@ class WP_Git_Plugins_Local_Plugins {
      * @since 1.0.0
      */
     public function ajax_reinstall_plugin() {
+        error_log('WP Git Plugins - ajax_reinstall_plugin called');
         try {
             WP_Git_Plugins::verify_ajax_request('install_plugins');
             
             $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;
+            error_log('WP Git Plugins - Reinstall repo ID: ' . $repo_id);
             
             if (empty($repo_id)) {
                 throw new Exception(__('Repository ID is required.', 'wp-git-plugins'));

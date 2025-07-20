@@ -141,7 +141,7 @@ jQuery(document).ready(function($) {
     }
 
     // Handle reinstall action
-    $(document).on('click', '.reinstall-plugin', function(e) {
+    $(document).on('click', '.install-plugin', function(e) {
         e.preventDefault();
         console.log('Reinstall button clicked');
         

@@ -19,6 +19,9 @@ class WP_Git_Plugins {
         // Pass settings to repository
         $this->repository = new WP_Git_Plugins_Repository($this->settings);
         
+        // Initialize Local_Plugins to ensure AJAX handlers are registered
+        WP_Git_Plugins_Local_Plugins::get_instance();
+        
         $this->define_admin_hooks();
         $this->define_public_hooks();
     }
