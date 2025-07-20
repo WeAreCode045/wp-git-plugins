@@ -540,14 +540,6 @@ class WP_Git_Plugins_Repository {
         error_log('WP Git Plugins - ajax_check_version called');
         error_log('WP Git Plugins - POST data: ' . print_r($_POST, true));
         
-        // Simple test - just return success immediately
-        wp_send_json_success([
-            'message' => 'AJAX handler is working - this is a test response',
-            'git_version' => '1.0.0-test',
-            'repo_id' => isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0
-        ]);
-        
-        // The code below won't execute because wp_send_json_success exits
         try {
             // Verify AJAX request - this will exit with wp_send_json_error if it fails
             WP_Git_Plugins::verify_ajax_request('manage_options');
@@ -571,11 +563,33 @@ class WP_Git_Plugins_Repository {
                     'message' => __('Repository not found.', 'wp-git-plugins')
                 ]);
             }
-        
             
-            $owner = $repo_data['owner'];
-            $repo_name = $repo_data['name'];
-            $branch = !empty($repo_data['branch']) ? $repo_data['branch'] : 'main';
+            // Check if repository has a valid GitHub URL
+            if (empty($repo_data->git_repo_url)) {
+                wp_send_json_error([
+                    'message' => __('Repository does not have a valid GitHub URL.', 'wp-git-plugins')
+                ]);
+            }
+            
+            error_log('WP Git Plugins - Repository data found: ' . print_r($repo_data, true));
+            
+            // Parse GitHub URL to get owner and repo name
+            $parsed_url = $this->github_api->parse_github_url($repo_data->git_repo_url);
+            
+            if (is_wp_error($parsed_url)) {
+                wp_send_json_error([
+                    'message' => sprintf(
+                        __('Invalid GitHub URL: %s', 'wp-git-plugins'),
+                        $parsed_url->get_error_message()
+                    )
+                ]);
+            }
+            
+            $owner = $parsed_url['owner'];
+            $repo_name = $parsed_url['repo'];
+            $branch = !empty($repo_data->branch) ? $repo_data->branch : 'main';
+            
+            error_log("WP Git Plugins - Checking version for: {$owner}/{$repo_name} (branch: {$branch})");
             
             // Get version from GitHub using the GitHub API
             $git_version = $this->github_api->get_version_from_plugin_header($owner, $repo_name, $branch);
@@ -589,17 +603,28 @@ class WP_Git_Plugins_Repository {
                 ]);
             }
             
-            // Update the git_version in the database
-            $update_result = $this->db->update_repo_version($repo_id, $git_version, true);
+            error_log("WP Git Plugins - Found version from GitHub: {$git_version}");
             
-            if (is_wp_error($update_result)) {
+            // Update the git_version in the database
+            global $wpdb;
+            $table_repos = $wpdb->prefix . 'wpgp_repos';
+            
+            $update_result = $wpdb->update(
+                $table_repos,
+                ['git_version' => $git_version],
+                ['id' => $repo_id],
+                ['%s'],
+                ['%d']
+            );
+            
+            if ($update_result === false) {
+                error_log('WP Git Plugins - Database update failed: ' . $wpdb->last_error);
                 wp_send_json_error([
-                    'message' => sprintf(
-                        __('Failed to save version to database: %s', 'wp-git-plugins'),
-                        $update_result->get_error_message()
-                    )
+                    'message' => __('Failed to save version to database.', 'wp-git-plugins')
                 ]);
             }
+            
+            error_log("WP Git Plugins - Successfully updated database with version: {$git_version}");
             
             // Success response
             wp_send_json_success([
