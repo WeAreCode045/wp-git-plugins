@@ -516,8 +516,8 @@
 
 /* Tabs */
 .nav-tab-wrapper {
-    margin-bottom: 20px;
-    border-bottom: 1px solid #ccc;
+    margin-bottom: 0;
+    border-bottom: 1px solid #c3c4c7;
 }
 
 .nav-tab {
@@ -992,10 +992,10 @@ button.button.button-secondary.wp-git-plugins-modal-close {
     border-top: none;
     border-radius: 0 0 4px 4px;
     min-height: 400px;
+    padding: 20px;
 }
 
 .tab-content {
-    padding: 20px;
     display: none;
 }
 

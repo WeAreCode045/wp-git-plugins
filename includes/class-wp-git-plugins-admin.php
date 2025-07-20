@@ -208,6 +208,15 @@ class WP_Git_Plugins_Admin {
             'all'
         );
         
+        // Enqueue common script for shared functionality
+        wp_enqueue_script(
+            $this->plugin_name . '-common',
+            WP_GIT_PLUGINS_URL . 'assets/js/common.js',
+            array('jquery'),
+            $this->version,
+            true
+        );
+        
         // Enqueue main admin script only if needed (not for repo list)
         // scripts.js removed; do not enqueue
         // Enqueue repository list script on dashboard page
@@ -237,6 +246,13 @@ class WP_Git_Plugins_Admin {
         WP_Git_Plugins_i18n::localize_script(
             $this->plugin_name . '-admin'
         );
+        
+        // Localize the common script if it's enqueued
+        if (wp_script_is($this->plugin_name . '-common', 'enqueued')) {
+            WP_Git_Plugins_i18n::localize_script(
+                $this->plugin_name . '-common'
+            );
+        }
         
         // Also localize the repository list script if it's enqueued
         if (wp_script_is($this->plugin_name . '-repository-list', 'enqueued')) {
