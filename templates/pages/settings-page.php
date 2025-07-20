@@ -29,12 +29,12 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
             <div class="tab-content-wrapper">
                 <!-- GitHub Settings Tab -->
                 <div id="github-settings" class="tab-content active">
-                    <?php include WP_GIT_PLUGINS_PATH . 'templates/components/settings/github-settings.php'; ?>
+                    <?php include WP_GIT_PLUGINS_DIR . 'templates/components/settings/github-settings.php'; ?>
                 </div>
                 
                 <!-- Modules Management Tab -->
                 <div id="modules-management" class="tab-content">
-                    <?php include WP_GIT_PLUGINS_PATH . 'templates/components/settings/module-settings.php'; ?>
+                    <?php include WP_GIT_PLUGINS_DIR . 'templates/components/settings/module-settings.php'; ?>
                 </div>
             </div>
         </div>

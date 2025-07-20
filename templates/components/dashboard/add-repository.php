@@ -8,19 +8,17 @@ if (!defined('ABSPATH')) {
     
     <!-- Tab Navigation -->
     <nav class="nav-tab-wrapper">
-        <ul class="nav-tabs">
-            <li><a href="#manual-add" class="nav-tab nav-tab-active">Manual Add</a></li>
-            <?php 
-            // Allow modules to add their own tabs
-            do_action('wp_git_plugins_add_repository_tabs'); 
-            ?>
-        </ul>
+        <a href="#manual-add" class="nav-tab nav-tab-active"><?php esc_html_e('Manual Add', 'wp-git-plugins'); ?></a>
+        <?php 
+        // Allow modules to add their own tabs
+        do_action('wp_git_plugins_add_repository_tabs'); 
+        ?>
     </nav>
     
     <!-- Tab Content -->
     <div class="tab-content-wrapper">
         <!-- Manual Add Tab -->
-        <div id="manual-add" class="tab-content">
+        <div id="manual-add" class="tab-content active">
             <form id="wp-git-plugins-add-repo" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
                 <?php wp_nonce_field('wp_git_plugins_add_repository', '_wpnonce'); ?>
                 <input type="hidden" name="action" value="wp_git_plugins_add_repository">
@@ -72,58 +70,3 @@ if (!defined('ABSPATH')) {
         ?>
     </div>
 </div>
-
-<style>
-.nav-tab-wrapper .nav-tabs {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-}
-
-.nav-tab-wrapper .nav-tabs li {
-    margin: 0;
-}
-
-.tab-content-wrapper {
-    border: 1px solid #c3c4c7;
-    border-top: none;
-    padding: 20px;
-    background: #fff;
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-#manual-add {
-    display: block; /* Default tab is shown */
-}
-</style>
-
-<script>
-jQuery(document).ready(function($) {
-    // Handle tab switching
-    $('.nav-tab').on('click', function(e) {
-        e.preventDefault();
-        
-        var target = $(this).attr('href');
-        
-        // Remove active class from all tabs
-        $('.nav-tab').removeClass('nav-tab-active');
-        
-        // Add active class to clicked tab
-        $(this).addClass('nav-tab-active');
-        
-        // Hide all tab content
-        $('.tab-content').hide();
-        
-        // Show target tab content
-        $(target).show();
-    });
-});
-</script>

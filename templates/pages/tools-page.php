@@ -40,30 +40,32 @@ add_action('admin_enqueue_scripts', function($hook) {
                         <h2 class="hndle"><span><?php esc_html_e('Debug Tools', 'wp-git-plugins'); ?></span></h2>
                         <div class="inside">
                             <h2 class="nav-tab-wrapper">
-                                <a href="#history" class="nav-tab nav-tab-active" data-tab="history">
+                                <a href="#history" class="nav-tab nav-tab-active">
                                     <?php esc_html_e('History', 'wp-git-plugins'); ?>
                                 </a>
-                                <a href="#error-log" class="nav-tab" data-tab="error-log">
+                                <a href="#error-log" class="nav-tab">
                                     <?php esc_html_e('Error Log', 'wp-git-plugins'); ?>
                                 </a>
-                                <a href="#console-log" class="nav-tab" data-tab="console-log">
+                                <a href="#console-log" class="nav-tab">
                                     <?php esc_html_e('Console Log', 'wp-git-plugins'); ?>
                                 </a>
                             </h2>
                             
-                            <!-- History Tab -->
-                            <div id="history-tab" class="tab-content active">
-                                <?php include WP_GIT_PLUGINS_PATH . 'templates/components/tools/logging/history-log.php'; ?>
-                            </div>
-                            
-                            <!-- Error Log Tab -->
-                            <div id="error-log-tab" class="tab-content">
-                                <?php include WP_GIT_PLUGINS_PATH . 'templates/components/tools/logging/debug-log.php'; ?>
-                            </div>
-                            
-                            <!-- Console Log Tab -->
-                            <div id="console-log-tab" class="tab-content">
-                                <?php include WP_GIT_PLUGINS_PATH . 'templates/components/tools/logging/console-log.php'; ?>
+                            <div class="tab-content-wrapper">
+                                <!-- History Tab -->
+                                <div id="history" class="tab-content active">
+                                    <?php include WP_GIT_PLUGINS_DIR . 'templates/components/tools/logging/history-log.php'; ?>
+                                </div>
+                                
+                                <!-- Error Log Tab -->
+                                <div id="error-log" class="tab-content">
+                                    <?php include WP_GIT_PLUGINS_DIR . 'templates/components/tools/logging/debug-log.php'; ?>
+                                </div>
+                                
+                                <!-- Console Log Tab -->
+                                <div id="console-log" class="tab-content">
+                                    <?php include WP_GIT_PLUGINS_DIR . 'templates/components/tools/logging/console-log.php'; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
