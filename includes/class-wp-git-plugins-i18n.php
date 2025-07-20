@@ -181,7 +181,7 @@ class WP_Git_Plugins_i18n {
             'dashboard' => __('Dashboard', 'wp-git-plugins'),
             'repositories' => __('Repositories', 'wp-git-plugins'),
             'settings' => __('Settings', 'wp-git-plugins'),
-            'debug_log' => __('Debug Log', 'wp-git-plugins'),
+            'tools' => __('Tools', 'wp-git-plugins'),
             
             // Page titles for reference
             'page_title_dashboard' => __('Git Plugins Dashboard', 'wp-git-plugins'),

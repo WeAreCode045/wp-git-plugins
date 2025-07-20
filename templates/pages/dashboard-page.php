@@ -21,11 +21,11 @@ if ($notice) {
     
     <div class="wp-git-plugins-container">
         <div class="wp-git-plugins-main">
-            <?php include WP_GIT_PLUGINS_DIR . 'templates/components/repository-list.php'; ?>
+            <?php include WP_GIT_PLUGINS_DIR . 'templates/components/dashboard/repository-list.php'; ?>
         </div>
         
         <div class="wp-git-plugins-sidebar">
-            <?php include WP_GIT_PLUGINS_DIR . 'templates/components/add-repository.php'; ?>
+            <?php include WP_GIT_PLUGINS_DIR . 'templates/components/dashboard/add-repository.php'; ?>
             <?php include WP_GIT_PLUGINS_DIR . 'templates/components/plugin-info.php'; ?>
         </div>
     </div>

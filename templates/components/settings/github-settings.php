@@ -1,5 +1,5 @@
 <?php
-// /templates/components/github-settings.php
+// /templates/components/settings/github-settings.php
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }

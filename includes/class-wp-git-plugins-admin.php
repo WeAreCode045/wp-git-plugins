@@ -153,14 +153,14 @@ class WP_Git_Plugins_Admin {
             callback: [$this, 'display_settings_page']
         );
         
-        // Add Debug Log submenu
+        // Add Tools submenu
         add_submenu_page(
-            parent_slug: 'wp-git-plugins',
-            page_title: $menu_strings['debug_log'],
-            menu_title: $menu_strings['debug_log'],
+            'wp-git-plugins', // Parent slug
+            page_title: $menu_strings['tools'],
+            menu_title: $menu_strings['tools'],
             capability: 'manage_options',
-            menu_slug: 'wp-git-plugins-debug',
-            callback: [$this, 'display_debug_page']
+            menu_slug: 'wp-git-plugins-tools',
+            callback: [$this, 'display_tools_page']
         );
     }
 
@@ -173,8 +173,8 @@ class WP_Git_Plugins_Admin {
         include WP_GIT_PLUGINS_DIR . 'templates/pages/settings-page.php';
     }
     
-    public function display_debug_page() {
-        include WP_GIT_PLUGINS_DIR . 'templates/pages/debug-page.php';
+    public function display_tools_page() {
+        include WP_GIT_PLUGINS_DIR . 'templates/pages/tools-page.php';
     }  
         
        

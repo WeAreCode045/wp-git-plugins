@@ -222,8 +222,9 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                     <?php endif; ?>
                                 <?php else : ?>
                                     <button class="button button-small install-plugin" 
-                                            data-repo-id="<?php echo esc_attr($repo['id']); ?>"></button> 
-                                     <span class="dashicons dashicons-download"></span>
+                                            data-repo-id="<?php echo esc_attr($repo['id']); ?>"
+                                            title="<?php esc_attr_e('Install plugin', 'wp-git-plugins'); ?>">
+                                        <span class="dashicons dashicons-download"></span>
                                     </button>
                                 <?php endif; ?>
                                 
@@ -287,4 +288,3 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
     <h3><?php esc_html_e('Update Check Results', 'wp-git-plugins'); ?></h3>
     <div id="update-results-content"></div>
 </div>
-
