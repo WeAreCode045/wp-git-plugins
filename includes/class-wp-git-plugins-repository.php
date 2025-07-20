@@ -537,8 +537,22 @@ class WP_Git_Plugins_Repository {
      */
 
     public function ajax_check_version() {
+        error_log('WP Git Plugins - ajax_check_version called');
+        error_log('WP Git Plugins - POST data: ' . print_r($_POST, true));
+        
+        // Simple test - just return success immediately
+        wp_send_json_success([
+            'message' => 'AJAX handler is working - this is a test response',
+            'git_version' => '1.0.0-test',
+            'repo_id' => isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0
+        ]);
+        
+        // The code below won't execute because wp_send_json_success exits
         try {
+            // Verify AJAX request - this will exit with wp_send_json_error if it fails
             WP_Git_Plugins::verify_ajax_request('manage_options');
+            
+            error_log('WP Git Plugins - Security verification passed');
             
             // Get repository ID
             $repo_id = isset($_POST['repo_id']) ? intval($_POST['repo_id']) : 0;

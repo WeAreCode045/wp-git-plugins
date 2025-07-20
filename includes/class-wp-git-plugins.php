@@ -32,8 +32,14 @@ class WP_Git_Plugins {
     private function load_dependencies() {
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-loader.php';
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-i18n.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-error-handler.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-db.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-settings.php';
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-github-api.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-local-plugins.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-branch.php';
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-repository.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-admin.php';
         
         $this->loader = new WP_Git_Plugins_Loader();
     }
