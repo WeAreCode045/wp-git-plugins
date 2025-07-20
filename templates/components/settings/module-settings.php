@@ -56,7 +56,7 @@ $installed_modules = $modules_manager->get_installed_modules();
         
         <?php if (empty($installed_modules)) : ?>
             <div class="no-modules-message">
-                <p><?php esc_html_e('No modules installed yet.', 'wp-git-plugins'); ?></p>
+                <p><?php esc_html_e('No module installed yet.', 'wp-git-plugins'); ?></p>
                 <p><?php esc_html_e('Upload a module ZIP file to get started.', 'wp-git-plugins'); ?></p>
             </div>
         <?php else : ?>
