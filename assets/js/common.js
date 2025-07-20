@@ -16,5 +16,50 @@ function showNotice(type, message) {
     }, 5000);
 }
 
+/**
+ * Initialize tab switching functionality
+ */
+function initTabSwitching() {
+    const $ = window.jQuery;
+    
+    // Handle tab switching
+    $('.nav-tab').on('click', function(e) {
+        e.preventDefault();
+        
+        var target = $(this).attr('href');
+        
+        // Remove active class from all tabs
+        $('.nav-tab').removeClass('nav-tab-active');
+        
+        // Add active class to clicked tab
+        $(this).addClass('nav-tab-active');
+        
+        // Hide all tab content
+        $('.tab-content').removeClass('active');
+        
+        // Show target tab content
+        $(target).addClass('active');
+        
+        // Update URL hash without scrolling
+        if (history.replaceState) {
+            history.replaceState(null, null, target);
+        }
+    });
+    
+    // Handle hash on page load
+    if (window.location.hash) {
+        var hash = window.location.hash;
+        if ($(hash).length && $('.nav-tab[href="' + hash + '"]').length) {
+            $('.nav-tab[href="' + hash + '"]').trigger('click');
+        }
+    }
+}
+
+// Initialize tab switching when document is ready
+jQuery(document).ready(function() {
+    initTabSwitching();
+});
+
 // Export for use in other scripts
 window.showNotice = showNotice;
+window.initTabSwitching = initTabSwitching;

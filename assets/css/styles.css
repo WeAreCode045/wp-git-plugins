@@ -1040,3 +1040,26 @@ button.button.button-secondary.wp-git-plugins-modal-close {
     height: 16px;
     line-height: 1;
 }
+
+/* Module Status Styling */
+.module-status.active {
+    color: #00a32a;
+    font-weight: 600;
+}
+
+.module-status.inactive {
+    color: #d63638;
+    font-weight: 600;
+}
+
+/* Module Table Row Actions */
+.wp-list-table .row-actions {
+    color: #666;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* No Modules Message */
+.no-modules-message {
+    margin: 20px 0;
+}
