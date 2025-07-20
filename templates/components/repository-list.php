@@ -51,7 +51,6 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                     <th><?php esc_html_e('Installed Version', 'wp-git-plugins'); ?></th>
                     <th><?php esc_html_e('Latest Version', 'wp-git-plugins'); ?></th>
                     <th><?php esc_html_e('Status', 'wp-git-plugins'); ?></th>
-                    <th><?php esc_html_e('Last Updated', 'wp-git-plugins'); ?></th>
                     <th><?php esc_html_e('Actions', 'wp-git-plugins'); ?></th>
                 </tr>
             </thead>
@@ -169,19 +168,7 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                 </span>
                             <?php endif; ?>
                         </td>
-                        <td class="last-updated">
-                            <?php 
-                            if (!empty($repo['last_updated'])) {
-                                $time_strings = WP_Git_Plugins_i18n::get_time_strings();
-                                $time_diff = human_time_diff(strtotime($repo['last_updated']), current_time('timestamp'));
-                                echo '<span title="' . esc_attr(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($repo['last_updated']))) . '">';
-                                echo esc_html(sprintf($time_strings['time_ago'], $time_diff));
-                                echo '</span>';
-                            } else {
-                                echo '—';
-                            }
-                            ?>
-                        </td>
+                        
                         <td class="actions" style="white-space: nowrap;">
                             <div class="action-buttons" style="display: flex; gap: 5px;">
                                 <?php 
