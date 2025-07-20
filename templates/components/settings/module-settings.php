@@ -116,3 +116,28 @@ $installed_modules = $modules_manager->get_installed_modules();
         <?php endif; ?>
     </div>
 </div>
+<?php
+class WP_Git_Plugins_Modules {
+    private static $instance = null;
+
+    public static function get_instance() {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    // Other methods...
+
+    /**
+     * Get installed modules.
+     *
+     * @return array
+     */
+    public function get_installed_modules() {
+        // Example implementation: fetch modules from an option or directory
+        // Replace this with your actual logic
+        $modules = get_option('wpgp_installed_modules', []);
+        return is_array($modules) ? $modules : [];
+    }
+}
