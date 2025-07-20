@@ -56,7 +56,7 @@ $installed_modules = $modules_manager->get_installed_modules();
         
         <?php if (empty($installed_modules)) : ?>
             <div class="no-modules-message">
-                <p><?php esc_html_e('No module installed yet.', 'wp-git-plugins'); ?></p>
+                <p><?php esc_html_e('No modules installed yet.', 'wp-git-plugins'); ?></p>
                 <p><?php esc_html_e('Upload a module ZIP file to get started.', 'wp-git-plugins'); ?></p>
             </div>
         <?php else : ?>
@@ -116,28 +116,3 @@ $installed_modules = $modules_manager->get_installed_modules();
         <?php endif; ?>
     </div>
 </div>
-<?php
-class WP_Git_Plugins_Modules {
-    private static $instance = null;
-
-    public static function get_instance() {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
-
-    // Other methods...
-
-    /**
-     * Get installed modules.
-     *
-     * @return array
-     */
-    public function get_installed_modules() {
-        // Example implementation: fetch modules from an option or directory
-        // Replace this with your actual logic
-        $modules = get_option('wpgp_installed_modules', []);
-        return is_array($modules) ? $modules : [];
-    }
-}
