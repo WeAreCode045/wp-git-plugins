@@ -1,34 +1,5 @@
-// Localized strings (should be set via wp_localize_script in PHP)
-var wpGitPlugins = wpGitPlugins || {};
-wpGitPlugins.i18n = wpGitPlugins.i18n || {
-    checking: 'Checking...',
-    checking_all: 'Checking All...',
-    updating: 'Updating...',
-    confirm_update: 'Are you sure you want to update this plugin from version %s to %s?',
-    update_available: 'Update available: %s (current: %s)',
-    no_updates: 'This plugin is up to date.',
-    update_success: 'Plugin updated successfully to version %s.',
-    update_error: 'An error occurred while updating the plugin.',
-    update_check_error: 'Failed to check for updates.',
-    error_deactivating: 'Failed to deactivate the plugin before update.',
-    update_success_reactivate_failed: 'Plugin updated but could not be reactivated. Please activate it manually.',
-    confirm_delete: 'Are you sure you want to delete this repository? This will not uninstall the plugin.',
-    deleting: 'Deleting...',
-    delete_error: 'Failed to delete the repository.',
-    confirm_branch_change: 'Are you sure you want to switch to the %s branch? This will update the plugin files.',
-    changing_branch: 'Switching branch...',
-    branch_change_error: 'Failed to switch branch.',
-    confirm_activate: 'Are you sure you want to activate this plugin?',
-    confirm_deactivate: 'Are you sure you want to deactivate this plugin?',
-    activating: 'Activating...',
-    deactivating: 'Deactivating...',
-    activate_success: 'Plugin activated successfully.',
-    activate_error: 'Failed to activate plugin.',
-    deactivate_success: 'Plugin deactivated successfully.',
-    deactivate_error: 'Failed to deactivate plugin.',
-    activate: 'Activate',
-    deactivate: 'Deactivate'
-};
+// wpGitPlugins object is populated via wp_localize_script in PHP
+// All translation strings and AJAX configuration come from WP_Git_Plugins_i18n class
 
 // Show notices function - global scope so it can be accessed from AJAX callbacks
 function showNotice(type, message) {

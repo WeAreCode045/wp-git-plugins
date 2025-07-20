@@ -104,6 +104,14 @@ class WP_Git_Plugins_i18n {
             'plugin_update_failed' => __('Plugin update failed', 'wp-git-plugins'),
             'plugin_not_found' => __('Plugin not found', 'wp-git-plugins'),
             
+            // Shorter plugin operation strings for JavaScript
+            'activate_success' => __('Plugin activated successfully', 'wp-git-plugins'),
+            'activate_error' => __('Failed to activate plugin', 'wp-git-plugins'),
+            'deactivate_success' => __('Plugin deactivated successfully', 'wp-git-plugins'),
+            'deactivate_error' => __('Failed to deactivate plugin', 'wp-git-plugins'),
+            'delete_success' => __('Repository deleted successfully', 'wp-git-plugins'),
+            'delete_error' => __('Failed to delete repository', 'wp-git-plugins'),
+            
             // Error handling strings
             'ajax_error' => __('AJAX request failed', 'wp-git-plugins'),
             'network_error' => __('Network error occurred', 'wp-git-plugins'),
@@ -134,6 +142,12 @@ class WP_Git_Plugins_i18n {
             'confirm_delete_plugin' => __('Are you sure you want to delete this plugin?', 'wp-git-plugins'),
             'confirm_update_all' => __('Are you sure you want to update all plugins?', 'wp-git-plugins'),
             'confirm_clear_log' => __('Are you sure you want to clear the log?', 'wp-git-plugins'),
+            'confirm_activate' => __('Are you sure you want to activate this plugin?', 'wp-git-plugins'),
+            'confirm_deactivate' => __('Are you sure you want to deactivate this plugin?', 'wp-git-plugins'),
+            'confirm_branch_change' => __('Are you sure you want to switch to the %s branch? This will update the plugin files.', 'wp-git-plugins'),
+            
+            // Aliases for JavaScript compatibility
+            'confirm_delete' => __('Are you sure you want to delete this repository?', 'wp-git-plugins'),
         );
     }
 
@@ -145,7 +159,13 @@ class WP_Git_Plugins_i18n {
      */
     public static function get_menu_strings() {
         return array(
-            'menu_title' => __('Git Plugins', 'wp-git-plugins'),
+            'git_plugins' => __('Git Plugins', 'wp-git-plugins'),
+            'dashboard' => __('Dashboard', 'wp-git-plugins'),
+            'repositories' => __('Repositories', 'wp-git-plugins'),
+            'settings' => __('Settings', 'wp-git-plugins'),
+            'debug_log' => __('Debug Log', 'wp-git-plugins'),
+            
+            // Page titles for reference
             'page_title_dashboard' => __('Git Plugins Dashboard', 'wp-git-plugins'),
             'page_title_repositories' => __('Repositories', 'wp-git-plugins'),
             'page_title_settings' => __('Git Plugins Settings', 'wp-git-plugins'),
@@ -164,7 +184,13 @@ class WP_Git_Plugins_i18n {
             'security_check_failed' => __('Security check failed.', 'wp-git-plugins'),
             'invalid_request' => __('Invalid request.', 'wp-git-plugins'),
             'operation_completed' => __('Operation completed successfully.', 'wp-git-plugins'),
-            'operation_failed' => __('Operation failed.', 'wp-git-plugins')
+            'operation_failed' => __('Operation failed.', 'wp-git-plugins'),
+            
+            // Repository-related notices
+            'repository_added' => __('Repository added successfully.', 'wp-git-plugins'),
+            'repository_removed' => __('Repository removed successfully.', 'wp-git-plugins'),
+            'repository_deleted' => __('Repository deleted successfully.', 'wp-git-plugins'),
+            'branch_changed' => __('Branch changed successfully.', 'wp-git-plugins')
         );
     }
 
