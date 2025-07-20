@@ -136,6 +136,22 @@
     text-decoration: underline;
 }
 
+/* Update button styling */
+.update-plugin.button-primary {
+    background: #d63638;
+    border-color: #d63638;
+    color: #fff;
+}
+
+.update-plugin.button-primary:hover:not(:disabled) {
+    background: #b32d2e;
+    border-color: #b32d2e;
+}
+
+.update-plugin.button-primary:focus {
+    box-shadow: 0 0 0 1px #fff, 0 0 0 3px #d63638;
+}
+
 /* Buttons */
 .button-small {
     padding: 0 8px;

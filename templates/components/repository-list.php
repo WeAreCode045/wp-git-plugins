@@ -184,7 +184,7 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                             data-id="<?php echo esc_attr($repo['id']); ?>"
                                             data-plugin="<?php echo esc_attr($plugin_slug); ?>"
                                             data-current-version="<?php echo esc_attr($installed_version); ?>"
-                                            data-new-version="<?php echo esc_attr($repo['git_version']); ?>"
+                                            data-new-version="<?php echo esc_attr($git_version); ?>"
                                             title="<?php esc_attr_e('Update plugin', 'wp-git-plugins'); ?>">
                                         <span class="dashicons dashicons-update"></span>
                                         <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>

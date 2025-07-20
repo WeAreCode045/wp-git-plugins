@@ -110,6 +110,12 @@ class WP_Git_Plugins_i18n {
             'version_check_failed' => __('Version check failed', 'wp-git-plugins'),
             'version_up_to_date' => __('Plugin is up to date', 'wp-git-plugins'),
             'version_outdated' => __('Plugin update available', 'wp-git-plugins'),
+            'confirm_update' => __('Are you sure you want to update this plugin from version %s to %s?', 'wp-git-plugins'),
+            'update_available' => __('Update available: %s (current: %s)', 'wp-git-plugins'),
+            'no_updates' => __('This plugin is up to date.', 'wp-git-plugins'),
+            'update_success' => __('Plugin updated successfully to version %s.', 'wp-git-plugins'),
+            'update_error' => __('An error occurred while updating the plugin.', 'wp-git-plugins'),
+            'update_check_error' => __('Failed to check for updates.', 'wp-git-plugins'),
             
             // Shorter plugin operation strings for JavaScript
             'activate_success' => __('Plugin activated successfully', 'wp-git-plugins'),

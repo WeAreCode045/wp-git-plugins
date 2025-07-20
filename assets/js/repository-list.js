@@ -307,10 +307,32 @@ jQuery(document).ready(function($) {
                         $versionCell.text(response.data.git_version);
                     }
                     
-                    // Reload page to show updated status (e.g., update button if version differs)
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1500);
+                    // Check if update is available and replace check button with update button
+                    if (response.data && response.data.update_available) {
+                        var installedVersion = response.data.local_version || '0.0.0';
+                        var latestVersion = response.data.git_version || '0.0.0';
+                        
+                        // Replace the check version button with update button
+                        var $actionContainer = $button.closest('.action-buttons');
+                        $button.remove();
+                        
+                        var updateButton = $('<button class="button button-primary button-small update-plugin" ' +
+                                           'data-id="' + repoId + '" ' +
+                                           'data-current-version="' + installedVersion + '" ' +
+                                           'data-new-version="' + latestVersion + '" ' +
+                                           'title="Update plugin">' +
+                                           '<span class="dashicons dashicons-update"></span>' +
+                                           '<span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>' +
+                                           '</button>');
+                        
+                        $actionContainer.prepend(updateButton);
+                        
+                        // Update the latest version cell with update-available styling
+                        $versionCell.html('<span class="update-available" style="color: #d63638; font-weight: 500;">' + latestVersion + '</span>');
+                    } else {
+                        // No update available, just show success message without reloading
+                        // The reload is not necessary if no update is available
+                    }
                 } else {
                     var errorMessage = (response && response.data && response.data.message) || wpGitPlugins.i18n.version_check_failed;
                     showNotice('error', errorMessage);
@@ -512,45 +534,54 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.update-plugin', function(e) {
         e.preventDefault();
         var $button = $(this);
-        var repoId = $button.data('repo-id');
+        var repoId = $button.data('id'); // Changed from data-repo-id to data-id
+        var currentVersion = $button.data('current-version');
+        var newVersion = $button.data('new-version');
         
         if (!repoId) {
             showNotice('error', 'Repository ID not found');
             return;
         }
         
-        if (!confirm(wpGitPlugins.i18n.confirm_update || 'Are you sure you want to update this plugin?')) {
+        // Show confirmation with version details
+        var confirmMessage = wpGitPlugins.i18n.confirm_update 
+            ? wpGitPlugins.i18n.confirm_update.replace('%s', currentVersion).replace('%s', newVersion)
+            : 'Are you sure you want to update this plugin from version ' + currentVersion + ' to ' + newVersion + '?';
+            
+        if (!confirm(confirmMessage)) {
             return;
         }
         
-        $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + (wpGitPlugins.i18n.updating || 'Updating...'));
+        $button.prop('disabled', true);
+        $button.find('.spinner').show();
         
         $.ajax({
             url: wpGitPlugins.ajax_url,
             type: 'POST',
             data: {
-                action: 'wp_git_plugins_update_plugin',
+                action: 'wp_git_plugins_update_repository', // Use existing update handler
                 _ajax_nonce: wpGitPlugins.ajax_nonce,
                 repo_id: repoId
             },
             success: function(response) {
                 if (response.success) {
-                    showNotice('success', response.data.message || (wpGitPlugins.i18n.plugin_updated || 'Plugin updated successfully'));
+                    showNotice('success', response.data.message || (wpGitPlugins.i18n.update_success || 'Plugin updated successfully'));
                     // Reload page to update status
                     setTimeout(function() {
                         location.reload();
                     }, 1500);
                 } else {
-                    showNotice('error', response.data.message || (wpGitPlugins.i18n.plugin_update_failed || 'Plugin update failed'));
-                    $button.prop('disabled', false).html('<span class="dashicons dashicons-update"></span>');
+                    showNotice('error', response.data.message || (wpGitPlugins.i18n.update_error || 'Plugin update failed'));
+                    $button.prop('disabled', false);
+                    $button.find('.spinner').hide();
                 }
             },
             error: function() {
-                showNotice('error', wpGitPlugins.i18n.plugin_update_failed || 'Plugin update failed');
-                $button.prop('disabled', false).html('<span class="dashicons dashicons-update"></span>');
+                showNotice('error', wpGitPlugins.i18n.update_error || 'Plugin update failed');
+                $button.prop('disabled', false);
+                $button.find('.spinner').hide();
             }
         });
-    }   
-);
+    });
 
 });

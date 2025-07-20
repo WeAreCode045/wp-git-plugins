@@ -634,6 +634,9 @@ class WP_Git_Plugins_Repository {
             error_log("WP Git Plugins - Local version: {$local_version}");
             // Log the versions found
             error_log("WP Git Plugins - Versions found - GitHub: {$git_version}, Local: {$local_version}");
+            // Check if update is available
+            $update_available = version_compare($git_version, $local_version, '>');
+            
             // If the local version is newer than the GitHub version, log a warning
             if (version_compare($local_version, $git_version, '>')) {
                 error_log("WP Git Plugins - Warning: Local version ({$local_version}) is newer than GitHub version ({$git_version}) for repository ID {$repo_id}");
@@ -645,7 +648,8 @@ class WP_Git_Plugins_Repository {
                     ),
                     'git_version' => $git_version,
                     'local_version' => $local_version,  
-                    'repo_id' => $repo_id
+                    'repo_id' => $repo_id,
+                    'update_available' => false
                 ]);
             }  
             // Prepare database update data
@@ -693,12 +697,22 @@ class WP_Git_Plugins_Repository {
                 );
             }
             
+            // Add update available information to message
+            if ($update_available) {
+                $message = sprintf(
+                    __('Update available! New version: %s (Installed: %s)', 'wp-git-plugins'),
+                    $git_version,
+                    $local_version
+                );
+            }
+            
             // Success response
             wp_send_json_success([
                 'message' => $message,
                 'git_version' => $git_version,
                 'local_version' => $local_version,
-                'repo_id' => $repo_id
+                'repo_id' => $repo_id,
+                'update_available' => $update_available
             ]);
             
         } catch (Exception $e) {
