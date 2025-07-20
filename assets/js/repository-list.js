@@ -414,4 +414,50 @@ jQuery(document).ready(function($) {
             }
         });
     });
+
+    // Handle Update action
+    $(document).on('click', '.update-plugin', function(e) {
+        e.preventDefault();
+        var $button = $(this);
+        var repoId = $button.data('repo-id');
+        
+        if (!repoId) {
+            showNotice('error', 'Repository ID not found');
+            return;
+        }
+        
+        if (!confirm(wpGitPlugins.i18n.confirm_update || 'Are you sure you want to update this plugin?')) {
+            return;
+        }
+        
+        $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + (wpGitPlugins.i18n.updating || 'Updating...'));
+        
+        $.ajax({
+            url: wpGitPlugins.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'wp_git_plugins_update_plugin',
+                _ajax_nonce: wpGitPlugins.ajax_nonce,
+                repo_id: repoId
+            },
+            success: function(response) {
+                if (response.success) {
+                    showNotice('success', response.data.message || (wpGitPlugins.i18n.plugin_updated || 'Plugin updated successfully'));
+                    // Reload page to update status
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showNotice('error', response.data.message || (wpGitPlugins.i18n.plugin_update_failed || 'Plugin update failed'));
+                    $button.prop('disabled', false).html('<span class="dashicons dashicons-update"></span>');
+                }
+            },
+            error: function() {
+                showNotice('error', wpGitPlugins.i18n.plugin_update_failed || 'Plugin update failed');
+                $button.prop('disabled', false).html('<span class="dashicons dashicons-update"></span>');
+            }
+        });
+    }   
+);
+
 });
