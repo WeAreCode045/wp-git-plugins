@@ -34,7 +34,40 @@ if (class_exists("WP_Git_Plugins_Modules")) {
     <!-- Module Upload Section -->
     <div class="module-upload-section">
         <h3><?php esc_html_e("Upload Module", "wp-git-plugins"); ?></h3>
-        <p>Module upload functionality will be implemented here.</p>
+        
+        <form id="module-upload-form" enctype="multipart/form-data">
+            <?php wp_nonce_field('wpgp_upload_module', '_ajax_nonce'); ?>
+            
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            <label for="module-file">
+                                <?php esc_html_e("Module ZIP File", "wp-git-plugins"); ?>
+                            </label>
+                        </th>
+                        <td>
+                            <input type="file" 
+                                   id="module-file" 
+                                   name="module_file" 
+                                   accept=".zip" 
+                                   required />
+                            <p class="description">
+                                <?php esc_html_e("Select a ZIP file containing the module to upload.", "wp-git-plugins"); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p class="submit">
+                <button type="submit" class="button button-primary">
+                    <span class="dashicons dashicons-upload"></span>
+                    <?php esc_html_e("Upload Module", "wp-git-plugins"); ?>
+                </button>
+                <span class="spinner" style="display: none;"></span>
+            </p>
+        </form>
     </div>
     
     <!-- Available Modules Section -->
@@ -46,11 +79,59 @@ if (class_exists("WP_Git_Plugins_Modules")) {
                 <p><?php esc_html_e("No modules found.", "wp-git-plugins"); ?></p>
             </div>
         <?php else : ?>
-            <ul>
-                <?php foreach ($available_modules as $module_slug => $module_info) : ?>
-                    <li><strong><?php echo esc_html($module_info["name"] ?? $module_slug); ?></strong> - <?php echo esc_html($module_info["version"] ?? "1.0.0"); ?></li>
-                <?php endforeach; ?>
-            </ul>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th scope="col"><?php esc_html_e("Module", "wp-git-plugins"); ?></th>
+                        <th scope="col"><?php esc_html_e("Version", "wp-git-plugins"); ?></th>
+                        <th scope="col"><?php esc_html_e("Description", "wp-git-plugins"); ?></th>
+                        <th scope="col"><?php esc_html_e("Status", "wp-git-plugins"); ?></th>
+                        <th scope="col"><?php esc_html_e("Actions", "wp-git-plugins"); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($available_modules as $module_slug => $module_info) : 
+                        $is_active = $modules_manager ? $modules_manager->is_module_active($module_slug) : false;
+                    ?>
+                        <tr>
+                            <td>
+                                <strong><?php echo esc_html($module_info["name"] ?? $module_slug); ?></strong>
+                                <?php if (!empty($module_info["author"])) : ?>
+                                    <br><span class="description"><?php printf(__("by %s", "wp-git-plugins"), esc_html($module_info["author"])); ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php echo esc_html($module_info["version"] ?? "1.0.0"); ?>
+                            </td>
+                            <td>
+                                <?php echo esc_html($module_info["description"] ?? ""); ?>
+                            </td>
+                            <td>
+                                <?php if ($is_active) : ?>
+                                    <span class="module-status active"><?php esc_html_e("Active", "wp-git-plugins"); ?></span>
+                                <?php else : ?>
+                                    <span class="module-status inactive"><?php esc_html_e("Inactive", "wp-git-plugins"); ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="module-actions">
+                                <?php if ($is_active) : ?>
+                                    <button type="button" class="button deactivate-module" data-module="<?php echo esc_attr($module_slug); ?>">
+                                        <?php esc_html_e("Deactivate", "wp-git-plugins"); ?>
+                                    </button>
+                                <?php else : ?>
+                                    <button type="button" class="button button-primary activate-module" data-module="<?php echo esc_attr($module_slug); ?>">
+                                        <?php esc_html_e("Activate", "wp-git-plugins"); ?>
+                                    </button>
+                                <?php endif; ?>
+                                
+                                <button type="button" class="button delete-module" data-module="<?php echo esc_attr($module_slug); ?>">
+                                    <?php esc_html_e("Delete", "wp-git-plugins"); ?>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         <?php endif; ?>
     </div>
 </div>
