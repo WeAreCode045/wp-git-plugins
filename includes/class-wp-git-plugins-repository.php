@@ -557,18 +557,10 @@ class WP_Git_Plugins_Repository {
                     'message' => __('Repository not found.', 'wp-git-plugins')
                 ]);
             }
+        
             
-            // Parse GitHub URL to get owner and repo name
-            $github_info = WP_Git_Plugins_Github_API::parse_github_url($repo_data['url']);
-            
-            if (is_wp_error($github_info)) {
-                wp_send_json_error([
-                    'message' => __('Invalid GitHub URL in repository data.', 'wp-git-plugins')
-                ]);
-            }
-            
-            $owner = $github_info['owner'];
-            $repo_name = $github_info['name'];
+            $owner = $repo_data['owner'];
+            $repo_name = $repo_data['name'];
             $branch = !empty($repo_data['branch']) ? $repo_data['branch'] : 'main';
             
             // Get version from GitHub using the GitHub API

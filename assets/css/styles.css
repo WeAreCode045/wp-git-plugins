@@ -855,3 +855,7 @@ table.fixed {
     color: #00a32a;
     font-weight: 600;
 }
+
+button.button.button-secondary.wp-git-plugins-modal-close {
+    width: fit-content;
+}
