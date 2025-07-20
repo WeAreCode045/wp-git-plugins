@@ -69,23 +69,6 @@ require WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins.php';
  *
  * @since    1.0.0
  */
-function run_wp_git_plugins() {
-    $plugin = new WP_Git_Plugins();
-    $plugin->run();
-    
-    // Initialize database tables if they don't exist
-    if (class_exists('WP_Git_Plugins_DB')) {
-        $db = WP_Git_Plugins_DB::get_instance();
-        $db->create_tables();
-    }
-}
-
-// Initialize the plugin
-add_action('plugins_loaded', 'run_wp_git_plugins');
-
-// No uninstall hook - plugin data will persist when plugin is deleted
-
-// Initialize the plugin
 function wp_git_plugins_init() {
     static $wp_git_plugins = null;
     
@@ -93,22 +76,16 @@ function wp_git_plugins_init() {
         // Initialize the main plugin class
         $wp_git_plugins = new WP_Git_Plugins();
         $wp_git_plugins->run();
+        
+        // Initialize database tables if they don't exist
+        if (class_exists('WP_Git_Plugins_DB')) {
+            $db = WP_Git_Plugins_DB::get_instance();
+            $db->create_tables();
+        }
     }
     
     return $wp_git_plugins;
 }
 
 // Initialize the plugin
-add_action('plugins_loaded', 'wp_git_plugins_init', 0);
-
-// No activation or deactivation hooks - we handle everything in plugins_loaded
-
-// Initialize the plugin for admin area
-if (is_admin() || (defined('WP_CLI') && WP_CLI)) {
-    add_action('plugins_loaded', 'wp_git_plugins_init');
-}
-
-// Initialize the plugin for frontend
-if (!is_admin() && !(defined('DOING_CRON') && DOING_CRON)) {
-    add_action('plugins_loaded', 'wp_git_plugins_init');
-}
+add_action('plugins_loaded', 'wp_git_plugins_init');
