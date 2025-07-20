@@ -23,7 +23,7 @@ if (!defined('WPINC')) {
 
 // Define plugin constants
 if (!defined('WP_GIT_PLUGINS_VERSION')) {
-    define('WP_GIT_PLUGINS_VERSION', '1.0.8');
+    define('WP_GIT_PLUGINS_VERSION', '1.0.9');
 }
 if (!defined('WP_GIT_PLUGINS_DIR')) {
     define('WP_GIT_PLUGINS_DIR', plugin_dir_path(__FILE__));
