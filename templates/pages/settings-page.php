@@ -22,7 +22,8 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
                 do_settings_sections('wp-git-plugins-settings');
                 
                 // Output save settings button
-                submit_button(__('Save Settings', 'wp-git-plugins'));
+                $form_strings = WP_Git_Plugins_i18n::get_form_strings();
+                submit_button($form_strings['save_settings']);
                 ?>
             </form>
         </div>

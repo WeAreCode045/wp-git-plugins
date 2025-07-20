@@ -54,8 +54,9 @@ $github_token = $settings->get_github_token();
                                autocomplete="off" />
                         <p class="description">
                             <?php 
+                            $github_strings = WP_Git_Plugins_i18n::get_github_strings();
                             printf(
-                                __('<a href="%s" target="_blank">Generate a new token</a> with the <code>repo</code> scope.', 'wp-git-plugins'),
+                                $github_strings['generate_token_link'],
                                 'https://github.com/settings/tokens/new?scopes=repo&description=WP%20Git%20Plugins'
                             );
                             ?><br>
@@ -66,6 +67,9 @@ $github_token = $settings->get_github_token();
             </tbody>
         </table>
         
-        <?php submit_button(__('Save GitHub Settings', 'wp-git-plugins')); ?>
+        <?php 
+        $form_strings = WP_Git_Plugins_i18n::get_form_strings();
+        submit_button($form_strings['save_github_settings']); 
+        ?>
     </form>
 </div>

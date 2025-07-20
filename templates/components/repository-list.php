@@ -7,11 +7,11 @@ if (!defined('ABSPATH')) {
 $db = WP_Git_Plugins_DB::get_instance();
 $repositories = $db->get_repos();
 
-// Convert database results to array format
+// Convert database results to standard repository format
 $repo_list = [];
 if ($repositories) {
     foreach ($repositories as $repo) {
-        $repo_list[] = (array) $repo;
+        $repo_list[] = $db->map_db_to_local_repo($repo);
     }
 }
 ?>
@@ -30,14 +30,15 @@ if ($repositories) {
         <p><?php esc_html_e('No repositories have been added yet.', 'wp-git-plugins'); ?></p>
     <?php else : ?>
         <?php
+$notice_strings = WP_Git_Plugins_i18n::get_notice_strings();
 if ( isset( $_GET['wpgp_notice'] ) ) {
     $notice = sanitize_text_field( $_GET['wpgp_notice'] );
     if ( $notice === 'deleted' ) {
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Repository deleted successfully.', 'wp-git-plugins' ) . '</p></div>';
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($notice_strings['repository_deleted']) . '</p></div>';
     } elseif ( $notice === 'delete_failed' ) {
-        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Failed to delete repository.', 'wp-git-plugins' ) . '</p></div>';
+        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($notice_strings['failed_delete_repo']) . '</p></div>';
     } elseif ( $notice === 'invalid_id' ) {
-        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html__( 'Invalid repository ID.', 'wp-git-plugins' ) . '</p></div>';
+        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($notice_strings['invalid_repo_id']) . '</p></div>';
     }
 }
 ?>
@@ -171,9 +172,10 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                         <td class="last-updated">
                             <?php 
                             if (!empty($repo['last_updated'])) {
+                                $time_strings = WP_Git_Plugins_i18n::get_time_strings();
                                 $time_diff = human_time_diff(strtotime($repo['last_updated']), current_time('timestamp'));
                                 echo '<span title="' . esc_attr(date_i18n(get_option('date_format') . ' ' . get_option('time_format'), strtotime($repo['last_updated']))) . '">';
-                                echo esc_html(sprintf(__('%s ago', 'wp-git-plugins'), $time_diff));
+                                echo esc_html(sprintf($time_strings['time_ago'], $time_diff));
                                 echo '</span>';
                             } else {
                                 echo '—';

@@ -51,7 +51,7 @@ class WP_Git_Plugins {
         $this->loader->add_action('admin_init', $this->settings, 'register_settings');
         
         // Handle form submissions
-        $this->loader->add_action('admin_post_wp_git_plugins_add_repo', $this, 'handle_form_submissions');
+        $this->loader->add_action('admin_post_wp_git_plugins_add_repository', $this, 'handle_form_submissions');
         
         // Add plugin action links
         $this->loader->add_filter('plugin_action_links_' . WP_GIT_PLUGINS_BASENAME, $plugin_admin, 'add_action_links');
@@ -90,8 +90,9 @@ class WP_Git_Plugins {
      */
     public function handle_form_submissions() {
         // Verify nonce
-        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wp_git_plugins_add_repo')) {
-            wp_die(__('Security check failed', 'wp-git-plugins'));
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'wp_git_plugins_add_repository')) {
+            $notice_strings = WP_Git_Plugins_i18n::get_notice_strings();
+            wp_die($notice_strings['security_check_failed']);
         }
 
         // Verify user capabilities
@@ -119,5 +120,139 @@ class WP_Git_Plugins {
             wp_redirect(add_query_arg('error', urlencode($e->getMessage()), wp_get_referer()));
             exit;
         }
+    }
+
+    // ===========================================
+    // UTILITY METHODS - Global helper functions
+    // ===========================================
+
+    /**
+     * Verify AJAX nonce and permissions for AJAX requests.
+     * This is a global utility that can be used by any class.
+     *
+     * @since 1.0.0
+     * @param string $required_capability The required capability for this action
+     * @throws Exception When verification fails
+     */
+    public static function verify_ajax_request($required_capability = 'manage_options') {
+        // Check if it's an AJAX request
+        if (!defined('DOING_AJAX') || !DOING_AJAX) {
+            wp_send_json_error(['message' => __('Invalid request', 'wp-git-plugins')], 400);
+        }
+
+        // Accept both _ajax_nonce and nonce for compatibility
+        $nonce = isset($_REQUEST['_ajax_nonce']) ? $_REQUEST['_ajax_nonce'] : (isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : '');
+        if (empty($nonce) || !wp_verify_nonce($nonce, 'wp_git_plugins_ajax')) {
+            $notice_strings = WP_Git_Plugins_i18n::get_notice_strings();
+            wp_send_json_error(['message' => $notice_strings['security_check_failed']], 403);
+        }
+
+        // Check user capabilities
+        if (!current_user_can($required_capability)) {
+            wp_send_json_error(['message' => __('You do not have sufficient permissions', 'wp-git-plugins')], 403);
+        }
+    }
+
+    /**
+     * Recursively remove a directory and all its contents.
+     * This is a global utility that can be used by any class.
+     * 
+     * @since 1.0.0
+     * @param string $dir Directory path to remove
+     * @return bool True on success, false on failure
+     */
+    public static function rrmdir($dir) {
+        if (!is_dir($dir)) {
+            return false;
+        }
+        
+        $objects = scandir($dir);
+        if ($objects === false) {
+            return false;
+        }
+        
+        $success = true;
+        foreach ($objects as $object) {
+            if ($object == "." || $object == "..") {
+                continue;
+            }
+            
+            $path = $dir . "/" . $object;
+            if (is_dir($path) && !is_link($path)) {
+                $success = self::rrmdir($path) && $success;
+            } else {
+                $success = unlink($path) && $success;
+            }
+        }
+        
+        return rmdir($dir) && $success;
+    }
+
+    /**
+     * Parse a GitHub repository URL to extract owner and repository name.
+     * This is a global utility that can be used by any class.
+     * 
+     * @since 1.0.0
+     * @param string $url GitHub repository URL
+     * @return array|WP_Error Array with 'owner' and 'name' keys, or WP_Error on failure
+     */
+    public static function parse_github_url($url) {
+        $pattern = '#^(?:https?://|git@)?(?:www\.)?github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$#';
+        
+        if (preg_match($pattern, $url, $matches)) {
+            return [
+                'owner' => $matches[1],
+                'name' => rtrim($matches[2], '.git')
+            ];
+        }
+        
+        return new WP_Error('invalid_url', __('Invalid GitHub repository URL', 'wp-git-plugins'));
+    }
+
+    /**
+     * Get the GitHub API URL for a repository endpoint.
+     * This is a global utility that can be used by any class.
+     * 
+     * @since 1.0.0
+     * @param string $owner GitHub repository owner
+     * @param string $repo GitHub repository name
+     * @param string $endpoint API endpoint (default: '')
+     * @return string GitHub API URL
+     */
+    public static function get_github_api_url($owner, $repo, $endpoint = '') {
+        $url = 'https://api.github.com/repos/' . $owner . '/' . $repo;
+        if (!empty($endpoint)) {
+            $url .= '/' . ltrim($endpoint, '/');
+        }
+        
+        return $url;
+    }
+
+    /**
+     * Get the download URL for a GitHub repository.
+     * This is a global utility that can be used by any class.
+     * 
+     * @since 1.0.0
+     * @param array $git_repo GitHub repository data
+     * @param string $github_token Optional GitHub token for private repos
+     * @return string Download URL
+     */
+    public static function get_download_url($git_repo, $github_token = '') {
+        if (!empty($git_repo['is_private']) && !empty($github_token)) {
+            return sprintf(
+                'https://api.github.com/repos/%s/%s/zipball/%s?access_token=%s',
+                $git_repo['gh_owner'],
+                $git_repo['gh_name'],
+                $git_repo['branch'],
+                $github_token
+            );
+        }
+        
+        return sprintf(
+            'https://github.com/%s/%s/archive/refs/heads/%s.zip',
+            $git_repo['gh_owner'],
+            $git_repo['gh_name'],
+            $git_repo['branch']
+        );
     }
 }

@@ -43,9 +43,11 @@ require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-loader.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-i18n.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-error-handler.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-db.php';
-require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-admin.php';
-require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-repository.php';
 require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-settings.php';
+require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-local-plugins.php';
+require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-branch.php';
+require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-repository.php';
+require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-admin.php';
 
 // No activation or deactivation hooks - we'll handle table creation in the main class
 

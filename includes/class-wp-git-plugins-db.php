@@ -327,6 +327,33 @@ class WP_Git_Plugins_DB {
     }
     
     /**
+     * Map database row to local repository format
+     * 
+     * @param array|object $db_row Database row
+     * @return array Local repository data
+     */
+    public function map_db_to_local_repo($db_row) {
+        $db_row = (array) $db_row; // Ensure we're working with an array
+        return [
+            'id' => $db_row['id'] ?? 0,
+            'git_repo_url' => $db_row['git_repo_url'] ?? sprintf('https://github.com/%s/%s', $db_row['gh_owner'] ?? '', $db_row['gh_name'] ?? ''),
+            'plugin_slug' => $db_row['plugin_slug'] ?? '',
+            'gh_owner' => $db_row['gh_owner'] ?? '',
+            'gh_name' => $db_row['gh_name'] ?? '',
+            'owner' => $db_row['gh_owner'] ?? '',
+            'name' => $db_row['gh_name'] ?? '',
+            'url' => $db_row['git_repo_url'] ?? sprintf('https://github.com/%s/%s', $db_row['gh_owner'] ?? '', $db_row['gh_name'] ?? ''),
+            'installed_version' => $db_row['local_version'] ?? '',
+            'latest_version' => $db_row['git_version'] ?? '',
+            'last_updated' => $db_row['updated_at'] ?? '',
+            'branch' => $db_row['branch'] ?? 'main',
+            'is_private' => (bool) ($db_row['is_private'] ?? false),
+            'active' => $db_row['active'] ?? true,
+            'created_at' => $db_row['created_at'] ?? current_time('mysql')
+        ];
+    }
+    
+    /**
      * Add a new repository
      * 
      * @param array $data Repository data

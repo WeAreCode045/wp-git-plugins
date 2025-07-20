@@ -17,7 +17,17 @@ wpGitPlugins.i18n = wpGitPlugins.i18n || {
     delete_error: 'Failed to delete the repository.',
     confirm_branch_change: 'Are you sure you want to switch to the %s branch? This will update the plugin files.',
     changing_branch: 'Switching branch...',
-    branch_change_error: 'Failed to switch branch.'
+    branch_change_error: 'Failed to switch branch.',
+    confirm_activate: 'Are you sure you want to activate this plugin?',
+    confirm_deactivate: 'Are you sure you want to deactivate this plugin?',
+    activating: 'Activating...',
+    deactivating: 'Deactivating...',
+    activate_success: 'Plugin activated successfully.',
+    activate_error: 'Failed to activate plugin.',
+    deactivate_success: 'Plugin deactivated successfully.',
+    deactivate_error: 'Failed to deactivate plugin.',
+    activate: 'Activate',
+    deactivate: 'Deactivate'
 };
 
 // Show notices function - global scope so it can be accessed from AJAX callbacks
@@ -80,14 +90,29 @@ jQuery(document).ready(function($) {
         e.preventDefault();
         var $button = $(this);
         var action = $button.hasClass('activate-plugin') ? 'activate' : 'deactivate';
-        var pluginId = $button.data('id');
+        var pluginSlug = $button.data('plugin'); // Use plugin slug instead of ID
         var confirmMessage = action === 'activate' ? wpGitPlugins.i18n.confirm_activate : wpGitPlugins.i18n.confirm_deactivate;
+
+        if (!pluginSlug) {
+            showNotice('error', 'Plugin slug not found');
+            return;
+        }
 
         if (!confirm(confirmMessage)) {
             return;
         }
 
-        $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + (action === 'activate' ? wpGitPlugins.i18n.activating : wpGitPlugins.i18n.deactivating));
+        $button.prop('disabled', true);
+        var $spinner = $button.find('.spinner');
+        var $icon = $button.find('.dashicons');
+        
+        // Hide icon and show spinner
+        $icon.hide();
+        if ($spinner.length === 0) {
+            $button.append('<span class="spinner" style="margin-top: -4px; float: none; display: inline-block;"></span>');
+        } else {
+            $spinner.show();
+        }
 
         $.ajax({
             url: wpGitPlugins.ajax_url,
@@ -95,7 +120,7 @@ jQuery(document).ready(function($) {
             data: {
                 action: 'wp_git_plugins_' + action + '_plugin',
                 _ajax_nonce: wpGitPlugins.ajax_nonce,
-                plugin_id: pluginId
+                plugin_slug: pluginSlug // Use plugin_slug instead of plugin_id
             },
             success: function(response) {
                 if (response.success) {
@@ -104,12 +129,18 @@ jQuery(document).ready(function($) {
                     location.reload();
                 } else {
                     showNotice('error', response.data.message || (action === 'activate' ? wpGitPlugins.i18n.activate_error : wpGitPlugins.i18n.deactivate_error));
-                    $button.prop('disabled', false).html(action === 'activate' ? wpGitPlugins.i18n.activate : wpGitPlugins.i18n.deactivate);
+                    // Restore button state
+                    $button.prop('disabled', false);
+                    $button.find('.spinner').hide();
+                    $button.find('.dashicons').show();
                 }
             },
             error: function() {
                 showNotice('error', action === 'activate' ? wpGitPlugins.i18n.activate_error : wpGitPlugins.i18n.deactivate_error);
-                $button.prop('disabled', false).html(action === 'activate' ? wpGitPlugins.i18n.activate : wpGitPlugins.i18n.deactivate);
+                // Restore button state
+                $button.prop('disabled', false);
+                $button.find('.spinner').hide();
+                $button.find('.dashicons').show();
             }
         });
     });

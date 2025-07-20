@@ -6,8 +6,8 @@ if (!defined('ABSPATH')) {
 <div class="wp-git-plugins-card">
     <h2><?php esc_html_e('Add Repository', 'wp-git-plugins'); ?></h2>
     <form id="wp-git-plugins-add-repo" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
-        <?php wp_nonce_field('wp_git_plugins_add_repo', '_wpnonce'); ?>
-        <input type="hidden" name="action" value="wp_git_plugins_add_repo">
+        <?php wp_nonce_field('wp_git_plugins_add_repository', '_wpnonce'); ?>
+        <input type="hidden" name="action" value="wp_git_plugins_add_repository">
         
         <table class="form-table" role="presentation">
             <tr>

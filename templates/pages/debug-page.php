@@ -24,15 +24,8 @@ add_action('admin_enqueue_scripts', function($hook) {
         true
     );
     
-    wp_localize_script('wp-git-plugins-debug', 'wpGitPluginsDebug', array(
-        'ajax_url' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('wp_git_plugins_debug_nonce'),
-        'i18n' => array(
-            'refreshing' => __('Refreshing...', 'wp-git-plugins'),
-            'error' => __('Error:', 'wp-git-plugins'),
-            'clear_confirm' => __('Are you sure you want to clear the log?', 'wp-git-plugins'),
-        )
-    ));
+    // Use centralized localization
+    WP_Git_Plugins_i18n::localize_debug_script('wp-git-plugins-debug');
 });
 ?>
 <div class="wrap wp-git-plugins-debug">
