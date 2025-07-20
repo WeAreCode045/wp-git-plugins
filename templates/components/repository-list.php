@@ -133,14 +133,14 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                         </td>
                         <td class="version-column">
                             <?php 
-                            $installed_version = $is_plugin_installed ? get_plugin_data($plugin_path, false, true) : '';
-                            $installed_version = $installed_version['Version'] ?? '';
+                            // Use the local_version from database instead of reading from plugin files
+                            $installed_version = $repo['installed_version'] ?? '';
                             ?>
                             <?php echo esc_html($installed_version ?: '—'); ?>
                         </td>
                         <td class="latest-version">
                             <?php 
-                            $git_version = $repo['git_version'] ?? ($repo['local_version'] ?? '');
+                            $git_version = $repo['latest_version'] ?? ($repo['git_version'] ?? '');
                             $update_available = $is_plugin_installed && !empty($installed_version) && !empty($git_version) && 
                                               version_compare($git_version, $installed_version, '>');
                             
