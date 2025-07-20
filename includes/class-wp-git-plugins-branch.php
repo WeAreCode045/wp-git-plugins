@@ -104,8 +104,8 @@ class WP_Git_Plugins_Branch {
         try {
             WP_Git_Plugins::verify_ajax_request();
             
-            $owner = isset($_POST['owner']) ? sanitize_text_field($_POST['owner']) : '';
-            $repo = isset($_POST['repo']) ? sanitize_text_field($_POST['repo']) : '';
+            $owner = isset($_POST['gh_owner']) ? sanitize_text_field($_POST['gh_owner']) : '';
+            $repo = isset($_POST['gh_name']) ? sanitize_text_field($_POST['gh_name']) : '';
             
             if (empty($owner) || empty($repo)) {
                 throw new Exception(__('Repository owner and name are required.', 'wp-git-plugins'));
