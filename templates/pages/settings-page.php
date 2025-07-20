@@ -16,7 +16,6 @@ if (!defined('ABSPATH')) {
 $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
 ?>
 <div class="wrap">
-    <h1><?php esc_html_e('WP Git Plugins - Settings', 'wp-git-plugins'); ?></h1>
     <div class="wp-git-plugins-container">
         <div class="wp-git-plugins-main">
             <h2 class="nav-tab-wrapper">
