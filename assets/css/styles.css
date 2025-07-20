@@ -632,6 +632,10 @@
         color: #ffffff;
         border: 0px;
     }
+.action .button:hover {
+    background: #1d5a8c;
+    color: #ffffff;
+}
 
 .repo-actions .button {
     margin-right: 5px;
@@ -837,7 +841,7 @@ table.fixed {
 
 .delete-option:hover {
     border-color: #0073aa;
-    background-color: #f7f7f7;
+    background-color: #9eabc0;
 }
 
 .delete-option input[type="radio"] {

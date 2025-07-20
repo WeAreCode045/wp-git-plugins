@@ -78,6 +78,8 @@ class WP_Git_Plugins_i18n {
             'edit' => __('Edit', 'wp-git-plugins'),
             'view' => __('View', 'wp-git-plugins'),
             'add' => __('Add', 'wp-git-plugins'),
+            'check_version' => __('Check Version', 'wp-git-plugins'),
+            'update_plugin' => __('Update Plugin', 'wp-git-plugins'),
             'delete_all' => __('Delete All', 'wp-git-plugins'),
             'no_plugins' => __('No plugins found', 'wp-git-plugins'),
             'no_repositories' => __('No repositories found', 'wp-git-plugins'),

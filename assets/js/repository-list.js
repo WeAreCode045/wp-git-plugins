@@ -293,8 +293,6 @@ jQuery(document).ready(function($) {
             },
             success: function(response) {
                 console.log('Version check response:', response);
-                console.log('Response type:', typeof response);
-                console.log('Response.data:', response.data);
                 
                 if (response && response.success) {
                     var message = (response.data && response.data.message) || wpGitPlugins.i18n.version_check_completed;
@@ -308,42 +306,45 @@ jQuery(document).ready(function($) {
                         console.log('Update available:', response.data.update_available);
                     }
                     
-                    // Update the version display in the table if needed
+                    // Update the version display in the table
                     var $row = $button.closest('tr');
-                    var $versionCell = $row.find('td:nth-child(4)'); // Latest Version column
+                    var $versionCell = $row.find('.latest-version');
                     if ($versionCell.length && response.data && response.data.git_version) {
-                        $versionCell.text(response.data.git_version);
+                        if (response.data.update_available) {
+                            $versionCell.html('<span class="update-available" style="color: #d63638; font-weight: 500;">' + response.data.git_version + '</span>');
+                        } else {
+                            $versionCell.text(response.data.git_version);
+                        }
                     }
                     
-                    // Check if update is available and replace check button with update button
+                    // Add update button if update is available and it doesn't exist already
                     if (response.data && response.data.update_available) {
-                        var installedVersion = response.data.local_version || '0.0.0';
-                        var latestVersion = response.data.git_version || '0.0.0';
-                        
-                        console.log('Update available! Replacing button...');
-                        console.log('Installed:', installedVersion, 'Latest:', latestVersion);
-                        
-                        // Replace the check version button with update button
                         var $actionContainer = $button.closest('.action-buttons');
-                        $button.remove();
+                        var $existingUpdateBtn = $actionContainer.find('.update-plugin');
                         
-                        var updateButton = $('<button class="button button-primary button-small update-plugin" ' +
-                                           'data-id="' + repoId + '" ' +
-                                           'data-current-version="' + installedVersion + '" ' +
-                                           'data-new-version="' + latestVersion + '" ' +
-                                           'title="Update plugin">' +
-                                           '<span class="dashicons dashicons-update"></span>' +
-                                           '<span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>' +
-                                           '</button>');
-                        
-                        $actionContainer.prepend(updateButton);
-                        
-                        // Update the latest version cell with update-available styling
-                        $versionCell.html('<span class="update-available" style="color: #d63638; font-weight: 500;">' + latestVersion + '</span>');
+                        if ($existingUpdateBtn.length === 0) {
+                            var installedVersion = response.data.local_version || '0.0.0';
+                            var latestVersion = response.data.git_version || '0.0.0';
+                            
+                            console.log('Adding update button - Installed:', installedVersion, 'Latest:', latestVersion);
+                            
+                            // Add update button after the check version button
+                            var updateButton = $('<button class="button button-primary button-small update-plugin" ' +
+                                               'data-id="' + repoId + '" ' +
+                                               'data-current-version="' + installedVersion + '" ' +
+                                               'data-new-version="' + latestVersion + '" ' +
+                                               'title="Update plugin">' +
+                                               '<span class="dashicons dashicons-download"></span>' +
+                                               '<span class="button-text">' + (wpGitPlugins.i18n.update_plugin || 'Update Plugin') + '</span>' +
+                                               '<span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>' +
+                                               '</button>');
+                            
+                            $button.after(updateButton);
+                        }
                     } else {
-                        console.log('No update available or same version');
-                        // No update available, just show success message without reloading
-                        // The reload is not necessary if no update is available
+                        // Remove update button if no update is available
+                        var $actionContainer = $button.closest('.action-buttons');
+                        $actionContainer.find('.update-plugin').remove();
                     }
                 } else {
                     var errorMessage = (response && response.data && response.data.message) || wpGitPlugins.i18n.version_check_failed;

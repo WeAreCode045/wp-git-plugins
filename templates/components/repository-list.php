@@ -192,27 +192,28 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                         </td>
                         
                         <td class="actions" style="white-space: nowrap;">
-                            <div class="action-buttons" style="display: flex; gap: 5px;">
-                                <?php 
-                                // Use the same update_available logic as the version display
-                                // $update_available is already calculated above for the version display
-                                ?>
+                            <div class="action-buttons" style="display: flex; gap: 5px;" data-repo-id="<?php echo esc_attr($repo['id']); ?>">
+                                <!-- Always show check version button -->
+                                <button class="button button-small check-version" 
+                                        data-id="<?php echo esc_attr($repo['id']); ?>" 
+                                        title="<?php esc_attr_e('Check for updates', 'wp-git-plugins'); ?>">
+                                    <span class="dashicons dashicons-update"></span>
+                                    <span class="button-text"><?php echo esc_html($i18n_data['i18n']['check_version'] ?? 'Check Version'); ?></span>
+                                    <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>
+                                </button>
                                 
-                                <?php if ($update_available) : ?>
+                                <!-- Update button will be dynamically inserted here when update is available -->
+                                <?php 
+                                // Only show update button if we already know update is available from database
+                                if ($update_available) : ?>
                                     <button class="button button-primary button-small update-plugin" 
                                             data-id="<?php echo esc_attr($repo['id']); ?>"
                                             data-plugin="<?php echo esc_attr($plugin_slug); ?>"
                                             data-current-version="<?php echo esc_attr($installed_version); ?>"
                                             data-new-version="<?php echo esc_attr($git_version); ?>"
                                             title="<?php esc_attr_e('Update plugin', 'wp-git-plugins'); ?>">
-                                        <span class="dashicons dashicons-update"></span>
-                                        <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>
-                                    </button>
-                                <?php else : ?>
-                                    <button class="button button-small check-version" 
-                                            data-id="<?php echo esc_attr($repo['id']); ?>" 
-                                            title="<?php esc_attr_e('Check for updates', 'wp-git-plugins'); ?>">
-                                        <span class="dashicons dashicons-update"></span>
+                                        <span class="dashicons dashicons-download"></span>
+                                        <span class="button-text"><?php echo esc_html($i18n_data['i18n']['update_plugin'] ?? 'Update Plugin'); ?></span>
                                         <span class="spinner" style="margin-top: -4px; float: none; display: none;"></span>
                                     </button>
                                 <?php endif; ?>
