@@ -148,6 +148,8 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
     }
 }
 
-// Initialize the module
-$wp_git_plugins_fetch_my_repos = new WP_Git_Plugins_Fetch_My_Repos_Module();
-$wp_git_plugins_fetch_my_repos->init();
+// Only initialize if this is being loaded as a module (not directly)
+if (class_exists('WP_Git_Plugins_Modules')) {
+    $wp_git_plugins_fetch_my_repos = new WP_Git_Plugins_Fetch_My_Repos_Module();
+    $wp_git_plugins_fetch_my_repos->init();
+}

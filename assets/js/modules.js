@@ -5,6 +5,17 @@
 
 jQuery(document).ready(function($) {
     
+    // Check if wpGitPlugins is available, if not create a fallback
+    if (typeof wpGitPlugins === 'undefined') {
+        console.warn('wpGitPlugins object not found. Creating fallback.');
+        window.wpGitPlugins = {
+            ajax_url: ajaxurl || '/wp-admin/admin-ajax.php',
+            ajax_nonce: ''
+        };
+    }
+    
+    console.log('Module management script loaded. wpGitPlugins:', wpGitPlugins);
+    
     // Handle module upload
     $('#module-upload-form').on('submit', function(e) {
         e.preventDefault();
@@ -59,8 +70,12 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.activate-module', function(e) {
         e.preventDefault();
         
+        console.log('Activate button clicked'); // Debug
+        
         var $button = $(this);
         var moduleSlug = $button.data('module');
+        
+        console.log('Module slug:', moduleSlug); // Debug
         
         if (!moduleSlug) {
             showModuleNotice('error', 'Module slug not found');
@@ -68,6 +83,8 @@ jQuery(document).ready(function($) {
         }
         
         $button.prop('disabled', true);
+        
+        console.log('Making AJAX request to:', wpGitPlugins.ajax_url); // Debug
         
         $.ajax({
             url: wpGitPlugins.ajax_url,

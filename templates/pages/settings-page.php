@@ -51,6 +51,13 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
                     $modules_manager = WP_Git_Plugins_Modules::get_instance();
                     $available_modules = $modules_manager->get_available_modules();
                     $active_modules = get_option('wpgp_active_modules', []);
+                    
+                    // Debug output
+                    echo '<!-- Debug: Modules directory: ' . esc_html($modules_manager->get_modules_dir()) . ' -->';
+                    echo '<!-- Debug: Available modules count: ' . count($available_modules) . ' -->';
+                    if (!empty($available_modules)) {
+                        echo '<!-- Debug: Modules found: ' . esc_html(implode(', ', array_keys($available_modules))) . ' -->';
+                    }
                     ?>
                     
                     <!-- Upload Module Section -->
