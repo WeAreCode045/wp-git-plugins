@@ -68,6 +68,9 @@ class WP_Git_Plugins {
         
         // Add plugin action links
         $this->loader->add_filter('plugin_action_links_' . WP_GIT_PLUGINS_BASENAME, $plugin_admin, 'add_action_links');
+        
+        // Track plugin activation to update local versions
+        $this->loader->add_action('activated_plugin', $this, 'on_plugin_activated');
     }
 
     private function define_public_hooks() {
@@ -132,6 +135,68 @@ class WP_Git_Plugins {
             // Redirect back with error message
             wp_redirect(add_query_arg('error', urlencode($e->getMessage()), wp_get_referer()));
             exit;
+        }
+    }
+
+    /**
+     * Handle plugin activation to update local version in database
+     *
+     * @since 1.0.0
+     * @param string $plugin Plugin basename (plugin-folder/plugin-file.php)
+     */
+    public function on_plugin_activated($plugin) {
+        // Don't track activation of our own plugin
+        if ($plugin === WP_GIT_PLUGINS_BASENAME) {
+            return;
+        }
+        
+        error_log("WP Git Plugins - Plugin activated: {$plugin}");
+        
+        // Check if this plugin is managed by our system
+        $db = WP_Git_Plugins_DB::get_instance();
+        $repo = $db->get_repo_by_slug($plugin);
+        
+        if (!$repo) {
+            // Plugin is not managed by our system
+            return;
+        }
+        
+        error_log("WP Git Plugins - Activated plugin is managed by our system: {$plugin}");
+        
+        // Get the plugin data to extract version
+        $plugin_path = WP_PLUGIN_DIR . '/' . $plugin;
+        
+        if (!file_exists($plugin_path)) {
+            error_log("WP Git Plugins - Plugin file not found: {$plugin_path}");
+            return;
+        }
+        
+        $plugin_data = get_plugin_data($plugin_path, false, false);
+        $current_version = $plugin_data['Version'] ?? '';
+        
+        if (empty($current_version)) {
+            error_log("WP Git Plugins - Could not determine version for plugin: {$plugin}");
+            return;
+        }
+        
+        error_log("WP Git Plugins - Found version {$current_version} for plugin {$plugin}");
+        
+        // Update the local_version in the database
+        global $wpdb;
+        $table_repos = $wpdb->prefix . 'wpgp_repos';
+        
+        $update_result = $wpdb->update(
+            $table_repos,
+            ['local_version' => $current_version],
+            ['plugin_slug' => $plugin],
+            ['%s'],
+            ['%s']
+        );
+        
+        if ($update_result === false) {
+            error_log("WP Git Plugins - Failed to update local_version for {$plugin}: " . $wpdb->last_error);
+        } else {
+            error_log("WP Git Plugins - Successfully updated local_version to {$current_version} for {$plugin}");
         }
     }
 
