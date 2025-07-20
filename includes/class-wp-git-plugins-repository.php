@@ -15,9 +15,6 @@ class WP_Git_Plugins_Repository {
         // Initialize GitHub API
         $this->github_api = WP_Git_Plugins_Github_API::get_instance($this->github_token);
         
-        // Debug token availability
-        error_log('WP Git Plugins - Repository initialized with token: ' . (!empty($this->github_token) ? 'YES' : 'NO'));
-        
         // Register AJAX handlers for repository operations
         add_action('wp_ajax_wp_git_plugins_add_repository', array($this, 'ajax_add_repository'));
         add_action('wp_ajax_wp_git_plugins_delete_repository', array($this, 'ajax_delete_repository'));
@@ -409,7 +406,6 @@ class WP_Git_Plugins_Repository {
 
             // Store plugin slug for error handling
             $plugin_slug = $repo['plugin_slug'] ?? '';
-            error_log('WP Git Plugins - Starting update for repository ID: ' . $repo_id . ', Plugin: ' . $plugin_slug);
 
             $local_plugins = WP_Git_Plugins_Local_Plugins::get_instance();
 
@@ -420,7 +416,6 @@ class WP_Git_Plugins_Repository {
                 $was_active = $local_plugins->is_plugin_active($plugin_slug);
 
                 if ($was_active) {
-                    error_log('WP Git Plugins - Deactivating plugin: ' . $plugin_slug);
                     $deactivate_result = $local_plugins->deactivate_plugin($plugin_slug);
 
                     if (is_wp_error($deactivate_result)) {
@@ -433,13 +428,10 @@ class WP_Git_Plugins_Repository {
             }
 
             // Update the repository using git clone method (same as branch change)
-            error_log('WP Git Plugins - Updating repository ID: ' . $repo_id . ' using git clone method');
-            
             $plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_slug;
             
             // Delete the existing plugin folder
             if (is_dir($plugin_dir)) {
-                error_log('WP Git Plugins - Removing existing plugin directory: ' . $plugin_dir);
                 WP_Git_Plugins::rrmdir($plugin_dir);
             }
             
@@ -457,9 +449,7 @@ class WP_Git_Plugins_Repository {
                 escapeshellarg($plugin_dir)
             );
             
-            error_log('WP Git Plugins - Executing git clone command: ' . $command);
             $output = shell_exec($command);
-            error_log('WP Git Plugins - Git clone output: ' . $output);
             
             // Check if clone succeeded
             if (!is_dir($plugin_dir)) {
@@ -478,7 +468,6 @@ class WP_Git_Plugins_Repository {
                 $db->update_repo($repo_id, [
                     'local_version' => $plugin_data['Version']
                 ]);
-                error_log('WP Git Plugins - Updated local version to: ' . $plugin_data['Version']);
             }
             
             // Get updated repository data
@@ -489,13 +478,11 @@ class WP_Git_Plugins_Repository {
             $reactivation_error = '';
 
             if ($was_active && !empty($plugin_slug) && $local_plugins->is_plugin_installed($plugin_slug)) {
-                error_log('WP Git Plugins - Reactivating plugin: ' . $plugin_slug);
                 $activate_result = $local_plugins->activate_plugin($plugin_slug);
 
                 if (is_wp_error($activate_result)) {
                     $reactivation_success = false;
                     $reactivation_error = $activate_result->get_error_message();
-                    error_log('WP Git Plugins - Reactivation failed: ' . $reactivation_error);
                 }
             }
 

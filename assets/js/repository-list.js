@@ -114,13 +114,8 @@ jQuery(document).ready(function($) {
 
     // Show reinstall button when only files were deleted
     function showReinstallButton($row, repoId) {
-        console.log('showReinstallButton called with repo ID:', repoId);
-        
         var $actionCell = $row.find('.action-buttons');
         var $deleteButton = $actionCell.find('.delete-repo');
-        
-        console.log('Found action cell:', $actionCell.length);
-        console.log('Found delete button:', $deleteButton.length);
         
         // Replace delete button with reinstall button
         $deleteButton.removeClass('delete-repo')
@@ -130,30 +125,19 @@ jQuery(document).ready(function($) {
                     .prop('disabled', false)
                     .html('<span class="dashicons dashicons-download"></span>');
         
-        console.log('Button classes after change:', $deleteButton.attr('class'));
-        console.log('Button data-repo-id:', $deleteButton.attr('data-repo-id'));
-        
         // Update status to show files are missing
         var $statusCell = $row.find('.plugin-status');
         $statusCell.html('<span class="status-missing">' + (wpGitPlugins.i18n.files_missing || 'Files missing') + '</span>');
-        
-        console.log('Status updated to files missing');
     }
 
     // Handle reinstall action
     $(document).on('click', '.install-plugin', function(e) {
         e.preventDefault();
-        console.log('Reinstall button clicked');
         
         var $button = $(this);
         var repoId = $button.data('repo-id');
         
-        console.log('Repo ID:', repoId);
-        console.log('AJAX URL:', wpGitPlugins.ajax_url);
-        console.log('Nonce:', wpGitPlugins.ajax_nonce);
-        
         if (!repoId) {
-            console.error('No repo ID found');
             showNotice('error', 'Repository ID not found');
             return;
         }
@@ -164,8 +148,6 @@ jQuery(document).ready(function($) {
         
         $button.prop('disabled', true).html('<span class="spinner is-active"></span> ' + (wpGitPlugins.i18n.installing || 'Installing...'));
         
-        console.log('Sending AJAX request for reinstall');
-        
         $.ajax({
             url: wpGitPlugins.ajax_url,
             type: 'POST',
@@ -175,7 +157,6 @@ jQuery(document).ready(function($) {
                 repo_id: repoId
             },
             success: function(response) {
-                console.log('Reinstall response:', response);
                 if (response.success) {
                     showNotice('success', response.data.message || (wpGitPlugins.i18n.plugin_installed || 'Plugin installed successfully'));
                     // Reload page to update status
@@ -183,14 +164,11 @@ jQuery(document).ready(function($) {
                         location.reload();
                     }, 1500);
                 } else {
-                    console.error('Reinstall failed:', response);
                     showNotice('error', response.data.message || (wpGitPlugins.i18n.plugin_installation_failed || 'Plugin installation failed'));
                     $button.prop('disabled', false).html('<span class="dashicons dashicons-download"></span>');
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX error:', {xhr: xhr, status: status, error: error});
-                console.error('Response text:', xhr.responseText);
                 showNotice('error', wpGitPlugins.i18n.plugin_installation_failed || 'Plugin installation failed');
                 $button.prop('disabled', false).html('<span class="dashicons dashicons-download"></span>');
             }
@@ -292,19 +270,9 @@ jQuery(document).ready(function($) {
                 repo_id: repoId
             },
             success: function(response) {
-                console.log('Version check response:', response);
-                
                 if (response && response.success) {
                     var message = (response.data && response.data.message) || wpGitPlugins.i18n.version_check_completed;
                     showNotice('success', message);
-                    
-                    // Debug version comparison
-                    if (response.data) {
-                        console.log('Version comparison debug:');
-                        console.log('Git version:', response.data.git_version);
-                        console.log('Local version:', response.data.local_version);
-                        console.log('Update available:', response.data.update_available);
-                    }
                     
                     // Update the version display in the table
                     var $row = $button.closest('tr');
@@ -325,8 +293,6 @@ jQuery(document).ready(function($) {
                         if ($existingUpdateBtn.length === 0) {
                             var installedVersion = response.data.local_version || '0.0.0';
                             var latestVersion = response.data.git_version || '0.0.0';
-                            
-                            console.log('Adding update button - Installed:', installedVersion, 'Latest:', latestVersion);
                             
                             // Add update button after the check version button
                             var updateButton = $('<button class="button button-primary button-small update-plugin" ' +
@@ -357,13 +323,6 @@ jQuery(document).ready(function($) {
                 $icon.show();
             },
             error: function(xhr, status, error) {
-                console.error('Version check AJAX error:', {
-                    xhr: xhr,
-                    status: status,
-                    error: error,
-                    responseText: xhr.responseText
-                });
-                
                 // Try to parse error response
                 var errorMessage = wpGitPlugins.i18n.version_check_failed;
                 try {
@@ -374,7 +333,7 @@ jQuery(document).ready(function($) {
                         }
                     }
                 } catch (parseError) {
-                    console.log('Could not parse error response:', parseError);
+                    // Use default error message
                 }
                 
                 showNotice('error', errorMessage);
@@ -451,7 +410,6 @@ jQuery(document).ready(function($) {
         
         // If branches already loaded, do nothing
         if ($select.data('branches-loaded')) {
-            console.log('Branches already loaded for this selector');
             return;
         }
         
@@ -463,22 +421,8 @@ jQuery(document).ready(function($) {
         var ghName = $container.data('gh-name');
         var currentBranch = $select.data('current-branch');
         
-        console.log('Loading branches for:', {
-            repoId: repoId,
-            ghOwner: ghOwner,
-            ghName: ghName,
-            currentBranch: currentBranch,
-            ajaxUrl: wpGitPlugins.ajax_url,
-            nonce: wpGitPlugins.ajax_nonce
-        });
-        
         // Validate required data
         if (!repoId || !ghOwner || !ghName) {
-            console.error('Missing required data for branch loading:', {
-                repoId: repoId,
-                ghOwner: ghOwner,
-                ghName: ghName
-            });
             showNotice('error', 'Missing repository information for loading branches');
             $spinner.css('visibility', 'hidden').removeClass('is-active');
             return;
@@ -495,8 +439,6 @@ jQuery(document).ready(function($) {
                 gh_name: ghName
             },
             success: function(response) {
-                console.log('Branch loading response:', response);
-                
                 if (response.success && response.data && response.data.branches) {
                     // Clear existing options
                     $select.empty();
@@ -512,9 +454,7 @@ jQuery(document).ready(function($) {
                     
                     // Mark as loaded
                     $select.data('branches-loaded', true);
-                    console.log('Branches loaded successfully:', response.data.branches);
                 } else {
-                    console.error('Failed to load branches:', response);
                     showNotice('error', 'Failed to load branches: ' + (response.data && response.data.message || 'Unknown error'));
                     
                     // Keep current branch as only option
@@ -526,8 +466,6 @@ jQuery(document).ready(function($) {
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Error loading branches:', {xhr: xhr, status: status, error: error});
-                console.error('Response text:', xhr.responseText);
                 showNotice('error', 'Error loading branches: ' + error);
                 
                 // Keep current branch as only option

@@ -147,11 +147,6 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                                     $db->update_repo($repo['id'], ['local_version' => $installed_version]);
                                 }
                             }
-                            
-                            // Debug output (remove in production)
-                            if (defined('WP_DEBUG') && WP_DEBUG) {
-                                error_log("WP Git Plugins Debug - Repo {$repo['id']}: plugin_installed={$is_plugin_installed}, installed_version={$installed_version}, plugin_path={$plugin_path}");
-                            }
                             ?>
                             <?php echo esc_html($installed_version ?: '—'); ?>
                         </td>
@@ -160,11 +155,6 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                             $git_version = $repo['latest_version'] ?? ($repo['git_version'] ?? '');
                             $update_available = $is_plugin_installed && !empty($installed_version) && !empty($git_version) && 
                                               version_compare($git_version, $installed_version, '>');
-                            
-                            // Debug output (remove in production)
-                            if (defined('WP_DEBUG') && WP_DEBUG) {
-                                error_log("WP Git Plugins Debug - Repo {$repo['id']}: git_version={$git_version}, installed_version={$installed_version}, update_available=" . ($update_available ? 'true' : 'false'));
-                            }
                             
                             if ($update_available) {
                                 echo '<span class="update-available" style="color: #d63638; font-weight: 500;">' . esc_html($git_version) . '</span>';
