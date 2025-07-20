@@ -585,8 +585,10 @@ class WP_Git_Plugins_Repository {
                 ]);
             }
             
+            error_log('WP Git Plugins - Parsed URL: ' . print_r($parsed_url, true));
+            
             $owner = $parsed_url['owner'];
-            $repo_name = $parsed_url['repo'];
+            $repo_name = $parsed_url['name']; // Changed from 'repo' to 'name'
             $branch = !empty($repo_data->branch) ? $repo_data->branch : 'main';
             
             error_log("WP Git Plugins - Checking version for: {$owner}/{$repo_name} (branch: {$branch})");
