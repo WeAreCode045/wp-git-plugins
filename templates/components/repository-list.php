@@ -133,8 +133,25 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                         </td>
                         <td class="version-column">
                             <?php 
-                            // Use the local_version from database instead of reading from plugin files
+                            // Use the local_version from database, but also check the plugin file if needed
                             $installed_version = $repo['installed_version'] ?? '';
+                            
+                            // If no version in database but plugin is installed, get it from plugin file
+                            if (empty($installed_version) && $is_plugin_installed) {
+                                $plugin_data = get_plugin_data($plugin_path, false, false);
+                                $installed_version = $plugin_data['Version'] ?? '';
+                                
+                                // Update the database with the version from plugin file
+                                if (!empty($installed_version) && !empty($repo['id'])) {
+                                    $db = WP_Git_Plugins_DB::get_instance();
+                                    $db->update_repo($repo['id'], ['local_version' => $installed_version]);
+                                }
+                            }
+                            
+                            // Debug output (remove in production)
+                            if (defined('WP_DEBUG') && WP_DEBUG) {
+                                error_log("WP Git Plugins Debug - Repo {$repo['id']}: plugin_installed={$is_plugin_installed}, installed_version={$installed_version}, plugin_path={$plugin_path}");
+                            }
                             ?>
                             <?php echo esc_html($installed_version ?: '—'); ?>
                         </td>
@@ -143,6 +160,11 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                             $git_version = $repo['latest_version'] ?? ($repo['git_version'] ?? '');
                             $update_available = $is_plugin_installed && !empty($installed_version) && !empty($git_version) && 
                                               version_compare($git_version, $installed_version, '>');
+                            
+                            // Debug output (remove in production)
+                            if (defined('WP_DEBUG') && WP_DEBUG) {
+                                error_log("WP Git Plugins Debug - Repo {$repo['id']}: git_version={$git_version}, installed_version={$installed_version}, update_available=" . ($update_available ? 'true' : 'false'));
+                            }
                             
                             if ($update_available) {
                                 echo '<span class="update-available" style="color: #d63638; font-weight: 500;">' . esc_html($git_version) . '</span>';
@@ -172,11 +194,8 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
                         <td class="actions" style="white-space: nowrap;">
                             <div class="action-buttons" style="display: flex; gap: 5px;">
                                 <?php 
-                                // Check if update is available
-                                $update_available = false;
-                                if (!empty($repo['git_version']) && !empty($installed_version)) {
-                                    $update_available = version_compare($repo['git_version'], $installed_version, '>');
-                                }
+                                // Use the same update_available logic as the version display
+                                // $update_available is already calculated above for the version display
                                 ?>
                                 
                                 <?php if ($update_available) : ?>

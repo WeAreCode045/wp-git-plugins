@@ -345,6 +345,8 @@ class WP_Git_Plugins_DB {
             'url' => $db_row['git_repo_url'] ?? sprintf('https://github.com/%s/%s', $db_row['gh_owner'] ?? '', $db_row['gh_name'] ?? ''),
             'installed_version' => $db_row['local_version'] ?? '',
             'latest_version' => $db_row['git_version'] ?? '',
+            'git_version' => $db_row['git_version'] ?? '', // Add this for consistency
+            'local_version' => $db_row['local_version'] ?? '', // Add this for consistency
             'last_updated' => $db_row['updated_at'] ?? '',
             'branch' => $db_row['branch'] ?? 'main',
             'is_private' => (bool) ($db_row['is_private'] ?? false),

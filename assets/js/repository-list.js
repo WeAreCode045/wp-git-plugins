@@ -300,6 +300,14 @@ jQuery(document).ready(function($) {
                     var message = (response.data && response.data.message) || wpGitPlugins.i18n.version_check_completed;
                     showNotice('success', message);
                     
+                    // Debug version comparison
+                    if (response.data) {
+                        console.log('Version comparison debug:');
+                        console.log('Git version:', response.data.git_version);
+                        console.log('Local version:', response.data.local_version);
+                        console.log('Update available:', response.data.update_available);
+                    }
+                    
                     // Update the version display in the table if needed
                     var $row = $button.closest('tr');
                     var $versionCell = $row.find('td:nth-child(4)'); // Latest Version column
@@ -311,6 +319,9 @@ jQuery(document).ready(function($) {
                     if (response.data && response.data.update_available) {
                         var installedVersion = response.data.local_version || '0.0.0';
                         var latestVersion = response.data.git_version || '0.0.0';
+                        
+                        console.log('Update available! Replacing button...');
+                        console.log('Installed:', installedVersion, 'Latest:', latestVersion);
                         
                         // Replace the check version button with update button
                         var $actionContainer = $button.closest('.action-buttons');
@@ -330,6 +341,7 @@ jQuery(document).ready(function($) {
                         // Update the latest version cell with update-available styling
                         $versionCell.html('<span class="update-available" style="color: #d63638; font-weight: 500;">' + latestVersion + '</span>');
                     } else {
+                        console.log('No update available or same version');
                         // No update available, just show success message without reloading
                         // The reload is not necessary if no update is available
                     }
