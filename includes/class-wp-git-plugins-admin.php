@@ -135,32 +135,32 @@ class WP_Git_Plugins_Admin {
         
         // Add main menu and dashboard page
         add_menu_page(
-            $menu_strings['git_plugins'],
-            $menu_strings['git_plugins'],
-            'manage_options',
-            'wp-git-plugins',
-            [$this, 'display_dashboard_page'],
-            'dashicons-git'
+            page_title: $menu_strings['git_plugins'],
+            menu_title: $menu_strings['git_plugins'],
+            capability: 'manage_options',
+            menu_slug: 'wp-git-plugins',
+            callback:  [$this, 'display_dashboard_page'],
+            icon_url: 'dashicons-git'
         );
         
         // Add Settings submenu
         add_submenu_page(
-            'wp-git-plugins',
-            $menu_strings['settings'],
-            $menu_strings['settings'],
-            'manage_options',
-            'wp-git-plugins-settings',
-            [$this, 'display_settings_page']
+            parent_slug: 'wp-git-plugins',
+            page_title: $menu_strings['settings'],
+            menu_title: $menu_strings['settings'],
+            capability: 'manage_options',
+            menu_slug: 'wp-git-plugins-settings',
+            callback: [$this, 'display_settings_page']
         );
         
         // Add Debug Log submenu
         add_submenu_page(
-            'wp-git-plugins',
-            $menu_strings['debug_log'],
-            $menu_strings['debug_log'],
-            'manage_options',
-            'wp-git-plugins-debug',
-            [$this, 'display_debug_page']
+            parent_slug: 'wp-git-plugins',
+            page_title: $menu_strings['debug_log'],
+            menu_title: $menu_strings['debug_log'],
+            capability: 'manage_options',
+            menu_slug: 'wp-git-plugins-debug',
+            callback: [$this, 'display_debug_page']
         );
     }
 

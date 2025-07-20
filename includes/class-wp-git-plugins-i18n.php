@@ -77,6 +77,12 @@ class WP_Git_Plugins_i18n {
             'delete' => __('Delete', 'wp-git-plugins'),
             'edit' => __('Edit', 'wp-git-plugins'),
             'view' => __('View', 'wp-git-plugins'),
+            'add' => __('Add', 'wp-git-plugins'),
+            'delete_all' => __('Delete All', 'wp-git-plugins'),
+            'no_plugins' => __('No plugins found', 'wp-git-plugins'),
+            'no_repositories' => __('No repositories found', 'wp-git-plugins'),
+            'no_plugins_found' => __('No plugins found', 'wp-git-plugins'),
+            'no_repositories_found' => __('No repositories found', 'wp-git-plugins'),
             
             // Repository specific strings
             'repository_added' => __('Repository added successfully', 'wp-git-plugins'),
