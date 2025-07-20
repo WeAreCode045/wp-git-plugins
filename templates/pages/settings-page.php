@@ -27,10 +27,10 @@ $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
             </div>
             <div class="wp-git-plugins-tabs-content"> 
                 <div id="git-settings" class="wp-git-plugins-tab-content active">
-                    <?php include_once plugin_dir_path(dirname(__FILE__)) . 'components/github-settings.php'; ?>
+               <?php include WP_GIT_PLUGINS_DIR . 'templates/components/settings/github-settings.php'; ?>
                 </div>
                 <div id="modules-manager" class="wp-git-plugins-tab-content">
-                    <?php include_once plugin_dir_path(dirname(__FILE__)) . 'components/add-repository.php'; ?>
+                <?php include WP_GIT_PLUGINS_DIR . 'templates/components/settings/module-settings.php'; ?>
                 </div>
             </div>
         </div>
