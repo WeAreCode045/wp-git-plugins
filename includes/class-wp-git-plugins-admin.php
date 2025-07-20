@@ -221,6 +221,17 @@ class WP_Git_Plugins_Admin {
             );
         }
         
+        // Enqueue modules script on settings page
+        if ($hook === 'wp-git-plugins_page_wp-git-plugins-settings') {
+            wp_enqueue_script(
+                $this->plugin_name . '-modules',
+                WP_GIT_PLUGINS_URL . 'assets/js/modules.js',
+                array('jquery'),
+                $this->version,
+                true
+            );
+        }
+        
         // Localize script with AJAX URL and nonce
         // Use centralized localization class
         WP_Git_Plugins_i18n::localize_script(
@@ -231,6 +242,13 @@ class WP_Git_Plugins_Admin {
         if (wp_script_is($this->plugin_name . '-repository-list', 'enqueued')) {
             WP_Git_Plugins_i18n::localize_script(
                 $this->plugin_name . '-repository-list'
+            );
+        }
+        
+        // Also localize the modules script if it's enqueued
+        if (wp_script_is($this->plugin_name . '-modules', 'enqueued')) {
+            WP_Git_Plugins_i18n::localize_script(
+                $this->plugin_name . '-modules'
             );
         }
     }

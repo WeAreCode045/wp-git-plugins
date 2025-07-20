@@ -671,4 +671,92 @@ class WP_Git_Plugins_Github_API {
             $pattern
         ));
     }
+    
+    /**
+     * Get all repositories for a GitHub user
+     *
+     * @since 1.0.0
+     * @param string $username GitHub username
+     * @param int $per_page Number of repositories per page (max 100)
+     * @param int $page Page number for pagination
+     * @return array|WP_Error Array of repositories or error
+     */
+    public function get_user_repositories($username, $per_page = 100, $page = 1) {
+        if (empty($username)) {
+            return new WP_Error('invalid_username', 'Username is required');
+        }
+        
+        // Sanitize username
+        $username = sanitize_text_field($username);
+        
+        // Build API URL for user repositories
+        $url = $this->api_base . '/users/' . $username . '/repos';
+        $url = add_query_arg(array(
+            'type' => 'all',
+            'sort' => 'updated',
+            'direction' => 'desc',
+            'per_page' => min($per_page, 100), // GitHub max is 100
+            'page' => max($page, 1)
+        ), $url);
+        
+        // Check cache first
+        $cache_key = 'wpgp_user_repos_' . md5($username . $per_page . $page);
+        $cached_data = get_transient($cache_key);
+        
+        if (false !== $cached_data) {
+            return $cached_data;
+        }
+        
+        // Make API request
+        $response = $this->make_request($url, true, 30);
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        // Parse response
+        $response_body = wp_remote_retrieve_body($response);
+        $repositories = json_decode($response_body, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new WP_Error('json_error', 'Failed to parse GitHub API response');
+        }
+        
+        if (!is_array($repositories)) {
+            // Check for API error message
+            if (isset($repositories['message'])) {
+                return new WP_Error('github_api_error', $repositories['message']);
+            }
+            return new WP_Error('invalid_response', 'Invalid response from GitHub API');
+        }
+        
+        // Format repositories for consistency
+        $formatted_repos = array();
+        foreach ($repositories as $repo) {
+            $formatted_repos[] = array(
+                'id' => $repo['id'],
+                'name' => $repo['name'],
+                'full_name' => $repo['full_name'],
+                'description' => $repo['description'],
+                'private' => $repo['private'],
+                'clone_url' => $repo['clone_url'],
+                'ssh_url' => $repo['ssh_url'],
+                'html_url' => $repo['html_url'],
+                'language' => $repo['language'],
+                'default_branch' => $repo['default_branch'],
+                'created_at' => $repo['created_at'],
+                'updated_at' => $repo['updated_at'],
+                'size' => $repo['size'],
+                'stargazers_count' => $repo['stargazers_count'],
+                'forks_count' => $repo['forks_count'],
+                'archived' => $repo['archived'],
+                'disabled' => $repo['disabled']
+            );
+        }
+        
+        // Cache for 10 minutes
+        set_transient($cache_key, $formatted_repos, 600);
+        
+        return $formatted_repos;
+    }
 }
