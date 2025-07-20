@@ -134,3 +134,33 @@ jQuery(document).ready(function($) {
     }
 });
 </script>
+
+<script>
+// Module management functionality
+jQuery(document).ready(function($) {
+    console.log("Module management script loaded");
+    
+    // Handle module activation/deactivation
+    $(document).on("click", ".activate-module, .deactivate-module", function(e) {
+        e.preventDefault();
+        
+        var $button = $(this);
+        var moduleSlug = $button.data("module");
+        var action = $button.hasClass("activate-module") ? "wpgp_activate_module" : "wpgp_deactivate_module";
+        
+        console.log("Module action clicked:", action, "for module:", moduleSlug);
+        alert("Button clicked: " + action + " for module: " + moduleSlug);
+    });
+    
+    // Handle module deletion
+    $(document).on("click", ".delete-module", function(e) {
+        e.preventDefault();
+        
+        var $button = $(this);
+        var moduleSlug = $button.data("module");
+        
+        console.log("Delete module clicked for:", moduleSlug);
+        alert("Delete clicked for module: " + moduleSlug);
+    });
+});
+</script>
