@@ -432,25 +432,55 @@ class WP_Git_Plugins_Repository {
                 }
             }
 
-            // Update the repository by reinstalling the plugin
-            error_log('WP Git Plugins - Updating repository ID: ' . $repo_id . ( $force ? ' (force update)' : '' ));
+            // Update the repository using git clone method (same as branch change)
+            error_log('WP Git Plugins - Updating repository ID: ' . $repo_id . ' using git clone method');
             
-            // Prepare repository data for installation/update
-            $repo_data = [
-                'git_repo_url' => $repo['git_repo_url'],
-                'gh_owner' => $repo['gh_owner'],
-                'gh_name' => $repo['gh_name'],
-                'branch' => $repo['branch'],
-                'is_private' => $repo['is_private'],
-                'plugin_slug' => $repo['plugin_slug']
-            ];
+            $plugin_dir = WP_PLUGIN_DIR . '/' . $plugin_slug;
             
-            $result = $local_plugins->install_plugin($repo_data, $this->github_token);
-
-            if (is_wp_error($result)) {
-                throw new Exception($result->get_error_message());
+            // Delete the existing plugin folder
+            if (is_dir($plugin_dir)) {
+                error_log('WP Git Plugins - Removing existing plugin directory: ' . $plugin_dir);
+                WP_Git_Plugins::rrmdir($plugin_dir);
             }
-
+            
+            // Prepare clone URL
+            $clone_url = sprintf('https://github.com/%s/%s.git', $repo['gh_owner'], $repo['gh_name']);
+            if (!empty($repo['is_private']) && !empty($this->github_token)) {
+                $clone_url = sprintf('https://%s@github.com/%s/%s.git', $this->github_token, $repo['gh_owner'], $repo['gh_name']);
+            }
+            
+            // Clone the repository with the current branch (no branch change)
+            $command = sprintf(
+                'git clone --single-branch --branch %s %s %s 2>&1',
+                escapeshellarg($repo['branch']),
+                escapeshellarg($clone_url),
+                escapeshellarg($plugin_dir)
+            );
+            
+            error_log('WP Git Plugins - Executing git clone command: ' . $command);
+            $output = shell_exec($command);
+            error_log('WP Git Plugins - Git clone output: ' . $output);
+            
+            // Check if clone succeeded
+            if (!is_dir($plugin_dir)) {
+                throw new Exception(__('Failed to clone repository for update.', 'wp-git-plugins'));
+            }
+            
+            // Update database timestamps to indicate fresh update
+            $db = WP_Git_Plugins_DB::get_instance();
+            $db->update_repo($repo_id, [
+                'updated_at' => current_time('mysql')
+            ]);
+            
+            // Detect and update the local version from the newly cloned plugin
+            $plugin_data = $local_plugins->get_plugin_data($plugin_slug);
+            if ($plugin_data && isset($plugin_data['Version'])) {
+                $db->update_repo($repo_id, [
+                    'local_version' => $plugin_data['Version']
+                ]);
+                error_log('WP Git Plugins - Updated local version to: ' . $plugin_data['Version']);
+            }
+            
             // Get updated repository data
             $updated_repo = $this->get_local_repository($repo_id);
 
@@ -476,14 +506,12 @@ class WP_Git_Plugins_Repository {
 
             // Prepare success response
             $response = [
-                'message' => $force 
-                    ? __('Plugin has been force-updated successfully.', 'wp-git-plugins')
-                    : __('Plugin has been updated successfully.', 'wp-git-plugins'),
+                'message' => __('Plugin has been updated successfully using git clone.', 'wp-git-plugins'),
                 'repository' => $updated_repo,
                 'was_active' => $was_active,
                 'reactivated' => $reactivation_success,
                 'plugin_slug' => $plugin_slug,
-                'update_info' => $result
+                'method' => 'git_clone'
             ];
 
             // Add reactivation warning if needed
