@@ -607,15 +607,43 @@ class WP_Git_Plugins_Repository {
             
             error_log("WP Git Plugins - Found version from GitHub: {$git_version}");
             
-            // Update the git_version in the database
+            // Also check and update the local version if plugin is installed
+            $local_version = '';
+            $plugin_slug = $repo_data->plugin_slug ?? '';
+            
+            if (!empty($plugin_slug)) {
+                $plugin_path = WP_PLUGIN_DIR . '/' . $plugin_slug;
+                
+                if (file_exists($plugin_path)) {
+                    $plugin_data = get_plugin_data($plugin_path, false, false);
+                    $local_version = $plugin_data['Version'] ?? '';
+                    error_log("WP Git Plugins - Found local version: {$local_version} for plugin: {$plugin_slug}");
+                } else {
+                    error_log("WP Git Plugins - Plugin file not found at: {$plugin_path}");
+                }
+            } else {
+                error_log("WP Git Plugins - No plugin slug found for repository");
+            }
+            
+            // Prepare database update data
+            $update_data = ['git_version' => $git_version];
+            $update_format = ['%s'];
+            
+            // Include local version if we found one
+            if (!empty($local_version)) {
+                $update_data['local_version'] = $local_version;
+                $update_format[] = '%s';
+            }
+            
+            // Update the git_version (and local_version if found) in the database
             global $wpdb;
             $table_repos = $wpdb->prefix . 'wpgp_repos';
             
             $update_result = $wpdb->update(
                 $table_repos,
-                ['git_version' => $git_version],
+                $update_data,
                 ['id' => $repo_id],
-                ['%s'],
+                $update_format,
                 ['%d']
             );
             
@@ -626,15 +654,27 @@ class WP_Git_Plugins_Repository {
                 ]);
             }
             
-            error_log("WP Git Plugins - Successfully updated database with version: {$git_version}");
+            error_log("WP Git Plugins - Successfully updated database with git_version: {$git_version}" . 
+                     (!empty($local_version) ? " and local_version: {$local_version}" : ""));
+            
+            // Prepare success message
+            $message = sprintf(
+                __('Version check completed. Latest version: %s', 'wp-git-plugins'),
+                $git_version
+            );
+            
+            if (!empty($local_version)) {
+                $message .= sprintf(
+                    __(' (Installed: %s)', 'wp-git-plugins'),
+                    $local_version
+                );
+            }
             
             // Success response
             wp_send_json_success([
-                'message' => sprintf(
-                    __('Version check completed. Latest version: %s', 'wp-git-plugins'),
-                    $git_version
-                ),
+                'message' => $message,
                 'git_version' => $git_version,
+                'local_version' => $local_version,
                 'repo_id' => $repo_id
             ]);
             
