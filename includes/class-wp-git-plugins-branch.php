@@ -48,6 +48,15 @@ class WP_Git_Plugins_Branch {
     private $github_token;
 
     /**
+     * GitHub API instance.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      WP_Git_Plugins_Github_API    $github_api    The GitHub API instance.
+     */
+    private $github_api;
+
+    /**
      * The single instance of the class.
      *
      * @since    1.0.0
@@ -80,6 +89,9 @@ class WP_Git_Plugins_Branch {
         $this->settings = $settings;
         $this->github_token = $this->settings ? $this->settings->get_github_token() : '';
         
+        // Initialize GitHub API
+        $this->github_api = WP_Git_Plugins_Github_API::get_instance($this->github_token);
+        
         // Register AJAX handlers for branch operations
         add_action('wp_ajax_wp_git_plugins_get_branches', array($this, 'ajax_get_branches'));
         add_action('wp_ajax_wp_git_plugins_change_branch', array($this, 'ajax_change_branch'));
@@ -111,7 +123,7 @@ class WP_Git_Plugins_Branch {
                 throw new Exception(__('Repository owner and name are required.', 'wp-git-plugins'));
             }
             
-            $branches = $this->get_github_branches($owner, $repo);
+            $branches = $this->github_api->get_branches($owner, $repo);
             
             if (is_wp_error($branches)) {
                 throw new Exception($branches->get_error_message());
@@ -175,76 +187,6 @@ class WP_Git_Plugins_Branch {
             error_log('WP Git Plugins: ' . $error_message);
             wp_send_json_error(['message' => $error_message]);
         }
-    }
-
-    /**
-     * Get branches from GitHub repository.
-     *
-     * @since 1.0.0
-     * @param string $owner Repository owner
-     * @param string $repo Repository name
-     * @return array|WP_Error Array of branches on success, WP_Error on failure
-     */
-    public function get_github_branches($owner, $repo) {
-        if (empty($owner) || empty($repo)) {
-            return new WP_Error('invalid_params', __('Repository owner and name are required.', 'wp-git-plugins'));
-        }
-
-        // Log the attempt
-        error_log("WP Git Plugins - Getting branches for {$owner}/{$repo}");
-
-        $api_url = "https://api.github.com/repos/{$owner}/{$repo}/branches";
-        
-        $headers = array(
-            'User-Agent' => 'WP-Git-Plugins/1.0'
-        );
-        
-        // Add authorization header if token is available
-        if (!empty($this->github_token)) {
-            $headers['Authorization'] = 'token ' . $this->github_token;
-            error_log("WP Git Plugins - Using GitHub token for branch request");
-        } else {
-            error_log("WP Git Plugins - No GitHub token available for branch request");
-        }
-
-        $response = wp_remote_get($api_url, array(
-            'headers' => $headers,
-            'timeout' => 30
-        ));
-
-        if (is_wp_error($response)) {
-            error_log("WP Git Plugins - GitHub API request failed: " . $response->get_error_message());
-            return $response;
-        }
-
-        $response_code = wp_remote_retrieve_response_code($response);
-        $body = wp_remote_retrieve_body($response);
-        
-        error_log("WP Git Plugins - GitHub API response code: {$response_code}");
-
-        if ($response_code !== 200) {
-            $error_data = json_decode($body, true);
-            $error_message = isset($error_data['message']) ? $error_data['message'] : 'Unknown error';
-            error_log("WP Git Plugins - GitHub API error: {$error_message}");
-            return new WP_Error('github_api_error', sprintf(__('GitHub API error: %s', 'wp-git-plugins'), $error_message));
-        }
-
-        $branches_data = json_decode($body, true);
-        
-        if (!is_array($branches_data)) {
-            error_log("WP Git Plugins - Invalid branches data received from GitHub");
-            return new WP_Error('invalid_response', __('Invalid response from GitHub API.', 'wp-git-plugins'));
-        }
-
-        $branches = array();
-        foreach ($branches_data as $branch_data) {
-            if (isset($branch_data['name'])) {
-                $branches[] = $branch_data['name'];
-            }
-        }
-
-        error_log("WP Git Plugins - Found " . count($branches) . " branches: " . implode(', ', $branches));
-        return $branches;
     }
 
     /**

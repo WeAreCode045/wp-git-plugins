@@ -130,22 +130,21 @@ class WP_Git_Plugins_Debug {
             wp_send_json_error(__('GitHub token not configured.', 'wp-git-plugins'));
             return;
         }
-        $response = wp_remote_get('https://api.github.com/rate_limit', array(
-            'headers' => array(
-                'Authorization' => 'token ' . $github_token,
-                'Accept' => 'application/vnd.github.v3+json',
-            ),
-        ));
-        if (is_wp_error($response)) {
-            wp_send_json_error($response->get_error_message());
+        
+        // Use the GitHub API class
+        $github_api = WP_Git_Plugins_Github_API::get_instance($github_token);
+        $rate_limit_data = $github_api->check_rate_limit();
+        
+        if (is_wp_error($rate_limit_data)) {
+            wp_send_json_error($rate_limit_data->get_error_message());
             return;
         }
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        if (isset($body['resources']['core'])) {
+        
+        if (isset($rate_limit_data['resources']['core'])) {
             wp_send_json_success(array(
-                'limit' => $body['resources']['core']['limit'],
-                'remaining' => $body['resources']['core']['remaining'],
-                'reset' => $body['resources']['core']['reset'],
+                'limit' => $rate_limit_data['resources']['core']['limit'],
+                'remaining' => $rate_limit_data['resources']['core']['remaining'],
+                'reset' => $rate_limit_data['resources']['core']['reset'],
             ));
         } else {
             wp_send_json_error(__('Could not retrieve rate limit information.', 'wp-git-plugins'));

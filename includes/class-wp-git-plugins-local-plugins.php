@@ -28,6 +28,15 @@ class WP_Git_Plugins_Local_Plugins {
      * @var      WP_Git_Plugins_Local_Plugins    $instance    The single instance of the class.
      */
     private static $instance = null;
+    
+    /**
+     * GitHub API instance.
+     *
+     * @since    1.0.0
+     * @access   private
+     * @var      WP_Git_Plugins_Github_API    $github_api    The GitHub API instance.
+     */
+    private $github_api;
 
     /**
      * Get the singleton instance of the class.
@@ -48,6 +57,9 @@ class WP_Git_Plugins_Local_Plugins {
      * @since 1.0.0
      */
     private function __construct() {
+        // Initialize GitHub API instance
+        $this->github_api = WP_Git_Plugins_Github_API::get_instance();
+        
         // Register AJAX handlers for plugin operations
         add_action('wp_ajax_wp_git_plugins_activate_plugin', array($this, 'ajax_activate_plugin'));
         add_action('wp_ajax_wp_git_plugins_deactivate_plugin', array($this, 'ajax_deactivate_plugin'));
@@ -385,6 +397,11 @@ class WP_Git_Plugins_Local_Plugins {
             return new WP_Error('invalid_repo_data', __('Invalid repository data. Missing owner or repository name.', 'wp-git-plugins'));
         }
         
+        // Update GitHub API instance with token if provided
+        if (!empty($github_token)) {
+            $this->github_api->set_github_token($github_token);
+        }
+        
         $error_handler = WP_Git_Plugins_Error_Handler::instance();
         $error_handler->log_error(sprintf('Starting plugin installation: %s/%s', 
             $git_repo['gh_owner'],
@@ -417,10 +434,12 @@ class WP_Git_Plugins_Local_Plugins {
         $plugin_slug = !empty($git_repo['plugin_slug']) ? $git_repo['plugin_slug'] : $git_repo['gh_name'];
         $target_dir = WP_PLUGIN_DIR . '/' . $plugin_slug;
         
-        // Determine if this is a private repo and format clone URL accordingly
-        $clone_url = $is_private 
-            ? sprintf('https://%s@github.com/%s/%s.git', $github_token, $git_repo['gh_owner'], $git_repo['gh_name'])
-            : sprintf('https://github.com/%s/%s.git', $git_repo['gh_owner'], $git_repo['gh_name']);
+        // Get clone URL using GitHub API class
+        $clone_url = $this->github_api->get_clone_url(
+            $git_repo['gh_owner'], 
+            $git_repo['gh_name'], 
+            $is_private
+        );
                 
         $error_handler->log_error(sprintf('Preparing to clone repository: %s/%s (branch: %s) to %s', 
             $git_repo['gh_owner'],

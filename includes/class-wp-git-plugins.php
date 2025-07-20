@@ -16,6 +16,9 @@ class WP_Git_Plugins {
         // Initialize settings first
         $this->settings = new WP_Git_Plugins_Settings($this->plugin_name, $this->version);
         
+        // Initialize GitHub API with token from settings
+        WP_Git_Plugins_Github_API::get_instance($this->settings->get_github_token());
+        
         // Pass settings to repository
         $this->repository = new WP_Git_Plugins_Repository($this->settings);
         
@@ -29,6 +32,7 @@ class WP_Git_Plugins {
     private function load_dependencies() {
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-loader.php';
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-i18n.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-github-api.php';
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-repository.php';
         
         $this->loader = new WP_Git_Plugins_Loader();
@@ -192,7 +196,7 @@ class WP_Git_Plugins {
     }
 
     /**
-     * Parse a GitHub repository URL to extract owner and repository name.
+     * Parse GitHub URL to extract owner and repository name.
      * This is a global utility that can be used by any class.
      * 
      * @since 1.0.0
@@ -200,22 +204,12 @@ class WP_Git_Plugins {
      * @return array|WP_Error Array with 'owner' and 'name' keys, or WP_Error on failure
      */
     public static function parse_github_url($url) {
-        $pattern = '#^(?:https?://|git@)?(?:www\.)?github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$#';
-        
-        if (preg_match($pattern, $url, $matches)) {
-            return [
-                'owner' => $matches[1],
-                'name' => rtrim($matches[2], '.git')
-            ];
-        }
-        
-        return new WP_Error('invalid_url', __('Invalid GitHub repository URL', 'wp-git-plugins'));
+        return WP_Git_Plugins_Github_API::parse_github_url($url);
     }
 
     /**
      * Get the GitHub API URL for a repository endpoint.
      * This is a global utility that can be used by any class.
-     * 
      * @since 1.0.0
      * @param string $owner GitHub repository owner
      * @param string $repo GitHub repository name
@@ -223,12 +217,8 @@ class WP_Git_Plugins {
      * @return string GitHub API URL
      */
     public static function get_github_api_url($owner, $repo, $endpoint = '') {
-        $url = 'https://api.github.com/repos/' . $owner . '/' . $repo;
-        if (!empty($endpoint)) {
-            $url .= '/' . ltrim($endpoint, '/');
-        }
-        
-        return $url;
+        $github_api = WP_Git_Plugins_Github_API::get_instance();
+        return $github_api->build_api_url($owner, $repo, $endpoint);
     }
 
     /**
@@ -241,21 +231,15 @@ class WP_Git_Plugins {
      * @return string Download URL
      */
     public static function get_download_url($git_repo, $github_token = '') {
-        if (!empty($git_repo['is_private']) && !empty($github_token)) {
-            return sprintf(
-                'https://api.github.com/repos/%s/%s/zipball/%s?access_token=%s',
-                $git_repo['gh_owner'],
-                $git_repo['gh_name'],
-                $git_repo['branch'],
-                $github_token
-            );
-        }
+        $github_api = WP_Git_Plugins_Github_API::get_instance($github_token);
+        $is_private = !empty($git_repo['is_private']);
+        $branch = !empty($git_repo['branch']) ? $git_repo['branch'] : 'main';
         
-        return sprintf(
-            'https://github.com/%s/%s/archive/refs/heads/%s.zip',
+        return $github_api->get_download_url(
             $git_repo['gh_owner'],
             $git_repo['gh_name'],
-            $git_repo['branch']
+            $branch,
+            $is_private
         );
     }
 }

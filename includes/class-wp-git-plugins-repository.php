@@ -4,12 +4,16 @@ class WP_Git_Plugins_Repository {
     private $error_handler;
     private $settings;
     private $github_token;
+    private $github_api;
     
     public function __construct($settings = null) {
         $this->db = WP_Git_Plugins_DB::get_instance();
         $this->error_handler = WP_Git_Plugins_Error_Handler::instance();
         $this->settings = $settings;
         $this->github_token = $this->settings ? $this->settings->get_github_token() : '';
+        
+        // Initialize GitHub API
+        $this->github_api = WP_Git_Plugins_Github_API::get_instance($this->github_token);
         
         // Debug token availability
         error_log('WP Git Plugins - Repository initialized with token: ' . (!empty($this->github_token) ? 'YES' : 'NO'));
@@ -80,7 +84,7 @@ class WP_Git_Plugins_Repository {
      */
     public function add_repository($repo_url, $branch = 'main') {
         // Parse the GitHub URL to get owner and repo name
-        $parsed = WP_Git_Plugins::parse_github_url($repo_url);
+        $parsed = $this->github_api->parse_github_url($repo_url);
         if (is_wp_error($parsed)) {
             return $parsed;
         }
@@ -98,7 +102,7 @@ class WP_Git_Plugins_Repository {
         $is_private = (!empty($this->github_token) && strpos($repo_url, 'github.com') !== false) ? 1 : 0;
         
         // Get the latest version from GitHub
-        $latest_version = $this->get_latest_version_from_github($owner, $name, $branch);
+        $latest_version = $this->github_api->get_latest_version($owner, $name, $branch);
         if (is_wp_error($latest_version)) {
             $latest_version = '0.0.0'; // Default version if can't determine
         }
@@ -152,82 +156,6 @@ class WP_Git_Plugins_Repository {
         }
 
         return $repo_id; // Return the repository ID instead of true
-    }
-    
-    /**
-     * Get the download URL for a GitHub repository
-     * 
-     * @param array $git_repo GitHub repository data
-     * @return string Download URL
-     */
-    private function get_download_url($git_repo) {
-        return WP_Git_Plugins::get_download_url($git_repo, $this->github_token);
-    }
-
-    /**
-     * Get the GitHub API URL for a repository
-     * 
-     * @param string $owner GitHub repository owner
-     * @param string $repo GitHub repository name
-     * @param string $endpoint API endpoint (default: '')
-     * @return string GitHub API URL
-     */
-    private function get_github_api_url($owner, $repo, $endpoint = '') {
-        return WP_Git_Plugins::get_github_api_url($owner, $repo, $endpoint);
-    }
-    
-    
-    /**
-     * Get the latest version from GitHub for a repository
-     * 
-     * @param string $owner Repository owner
-     * @param string $repo Repository name
-     * @param string $branch Branch name
-     * @return string|WP_Error Version string or WP_Error on failure
-     */
-    public function get_latest_version_from_github($owner, $repo, $branch = 'main') {
-        // Try to get version from the plugin file in the repository
-        $api_url = sprintf('https://api.github.com/repos/%s/%s/contents/%s.php?ref=%s', 
-            $owner, $repo, $repo, $branch);
-        
-        $args = [];
-        if (!empty($this->github_token)) {
-            $args['headers'] = [
-                'Authorization' => 'token ' . $this->github_token,
-                'Accept' => 'application/vnd.github.v3+json'
-            ];
-        }
-        
-        $response = wp_remote_get($api_url, $args);
-        
-        if (is_wp_error($response)) {
-            return '0.0.0'; // Return default version instead of error
-        }
-        
-        $response_code = wp_remote_retrieve_response_code($response);
-        if ($response_code === 200) {
-            $content = json_decode(wp_remote_retrieve_body($response), true);
-            if (isset($content['content'])) {
-                $decoded_content = base64_decode($content['content']);
-                // Look for version in the plugin header
-                if (preg_match('/Version:\s*([^\n\r]+)/i', $decoded_content, $matches)) {
-                    return trim($matches[1]);
-                }
-            }
-        }
-        
-        // Fallback: try to get latest release tag
-        $api_url = sprintf('https://api.github.com/repos/%s/%s/releases/latest', $owner, $repo);
-        $response = wp_remote_get($api_url, $args);
-        
-        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
-            $release = json_decode(wp_remote_retrieve_body($response), true);
-            if (isset($release['tag_name'])) {
-                return ltrim($release['tag_name'], 'v'); // Remove 'v' prefix if present
-            }
-        }
-        
-        return '0.0.0'; // Default version
     }
     
     /**
