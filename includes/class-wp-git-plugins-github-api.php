@@ -360,46 +360,162 @@ class WP_Git_Plugins_Github_API {
      */
 
     public function get_version_from_plugin_header($owner, $repo, $branch = 'main') {
-        // Try multiple possible plugin file patterns
+        error_log("WP Git Plugins - Getting version for {$owner}/{$repo} on branch {$branch}");
+        
+        // First, try to get the repository structure to find PHP files
+        $repo_contents = $this->get_repository_contents($owner, $repo, '', $branch);
+        
+        if (!is_wp_error($repo_contents)) {
+            error_log('WP Git Plugins - Repository contents found, looking for PHP files');
+            
+            // Look for PHP files in the root directory
+            $php_files = [];
+            foreach ($repo_contents as $item) {
+                if (isset($item['name']) && substr($item['name'], -4) === '.php') {
+                    $php_files[] = $item['name'];
+                }
+            }
+            
+            error_log('WP Git Plugins - Found PHP files: ' . implode(', ', $php_files));
+            
+            // Try each PHP file found in the repository
+            foreach ($php_files as $php_file) {
+                $version = $this->get_version_from_file($owner, $repo, $php_file, $branch);
+                if (!is_wp_error($version)) {
+                    error_log("WP Git Plugins - Found version {$version} in file {$php_file}");
+                    return $version;
+                }
+            }
+        } else {
+            error_log('WP Git Plugins - Could not get repository contents: ' . $repo_contents->get_error_message());
+        }
+        
+        // Fallback to trying common file patterns
         $possible_files = [
             $repo . '.php',                    // repo-name.php
             'index.php',                       // index.php
             str_replace('-', '_', $repo) . '.php', // repo_name.php (underscores)
             'plugin.php',                      // plugin.php
-            basename($repo) . '.php'           // Just in case repo has a path
+            basename($repo) . '.php',          // Just in case repo has a path
+            'main.php',                        // main.php
+            strtolower($repo) . '.php'         // lowercase version
         ];
         
+        error_log('WP Git Plugins - Trying fallback file patterns: ' . implode(', ', $possible_files));
+        
         foreach ($possible_files as $file_name) {
-            $plugin_file_url = sprintf(
-                'https://raw.githubusercontent.com/%s/%s/%s/%s',
-                $owner,
-                $repo,
-                $branch,
-                $file_name
-            );
-            
-            $response = wp_remote_get($plugin_file_url, [
-                'timeout' => 10
-            ]);
-            
-            if (is_wp_error($response)) {
-                continue; // Try next file pattern
-            }
-            
-            if (wp_remote_retrieve_response_code($response) === 200) {
-                $content = wp_remote_retrieve_body($response);
-                
-                // Look for version in the plugin header
-                if (preg_match('/Version:\s*([^\n\r]+)/i', $content, $matches)) {
-                    return trim($matches[1]);
-                }
+            $version = $this->get_version_from_file($owner, $repo, $file_name, $branch);
+            if (!is_wp_error($version)) {
+                error_log("WP Git Plugins - Found version {$version} in fallback file {$file_name}");
+                return $version;
             }
         }
         
         return new WP_Error(
             'plugin_file_not_found',
-            __('Plugin header file not found. Tried multiple common file patterns.', 'wp-git-plugins')
+            sprintf(
+                __('Plugin header file not found in %s/%s on branch %s. Tried repository contents and common file patterns.', 'wp-git-plugins'),
+                $owner,
+                $repo,
+                $branch
+            )
         );
+    }
+    
+    /**
+     * Get version from a specific file
+     *
+     * @param string $owner Repository owner
+     * @param string $repo Repository name  
+     * @param string $file_name File name to check
+     * @param string $branch Branch name
+     * @return string|WP_Error Version string or WP_Error on failure
+     */
+    private function get_version_from_file($owner, $repo, $file_name, $branch = 'main') {
+        $plugin_file_url = sprintf(
+            'https://raw.githubusercontent.com/%s/%s/%s/%s',
+            $owner,
+            $repo,
+            $branch,
+            $file_name
+        );
+        
+        error_log("WP Git Plugins - Checking file: {$plugin_file_url}");
+        
+        $args = [
+            'timeout' => 15,
+            'user-agent' => 'WP-Git-Plugins/1.0'
+        ];
+        
+        // Add authorization header if we have a token
+        if (!empty($this->github_token)) {
+            $args['headers'] = [
+                'Authorization' => 'token ' . $this->github_token
+            ];
+        }
+        
+        $response = wp_remote_get($plugin_file_url, $args);
+        
+        if (is_wp_error($response)) {
+            error_log("WP Git Plugins - Request error for {$file_name}: " . $response->get_error_message());
+            return $response;
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        error_log("WP Git Plugins - Response code for {$file_name}: {$response_code}");
+        
+        if ($response_code !== 200) {
+            return new WP_Error('file_not_found', "File {$file_name} not found (HTTP {$response_code})");
+        }
+        
+        $content = wp_remote_retrieve_body($response);
+        
+        if (empty($content)) {
+            return new WP_Error('empty_file', "File {$file_name} is empty");
+        }
+        
+        // Look for version in the plugin header - try multiple patterns
+        $version_patterns = [
+            '/Version:\s*([^\n\r\*]+)/i',           // Standard: Version: 1.0.0
+            '/\*\s*Version:\s*([^\n\r\*]+)/i',      // With comment: * Version: 1.0.0
+            '/@version\s+([^\n\r\*]+)/i',           // PHPDoc: @version 1.0.0
+            '/define\s*\(\s*[\'"].*VERSION[\'"],\s*[\'"]([^\'"]+)[\'"]/i' // define('VERSION', '1.0.0')
+        ];
+        
+        foreach ($version_patterns as $pattern) {
+            if (preg_match($pattern, $content, $matches)) {
+                $version = trim($matches[1]);
+                error_log("WP Git Plugins - Found version '{$version}' in {$file_name} using pattern: {$pattern}");
+                return $version;
+            }
+        }
+        
+        error_log("WP Git Plugins - No version found in {$file_name}");
+        return new WP_Error('version_not_found', "No version header found in {$file_name}");
+    }
+    
+    /**
+     * Get repository contents
+     *
+     * @param string $owner Repository owner
+     * @param string $repo Repository name
+     * @param string $path Path within repository
+     * @param string $branch Branch name
+     * @return array|WP_Error Repository contents or WP_Error on failure
+     */
+    public function get_repository_contents($owner, $repo, $path = '', $branch = 'main') {
+        $url = $this->build_api_url($owner, $repo, 'contents/' . $path);
+        if ($branch !== 'main') {
+            $url .= '?ref=' . $branch;
+        }
+        
+        $response = $this->make_request($url);
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        return $response;
     }
     
     /**
