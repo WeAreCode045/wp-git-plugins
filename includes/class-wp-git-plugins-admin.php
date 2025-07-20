@@ -107,6 +107,7 @@ class WP_Git_Plugins_Admin {
         $this->plugin_name = $plugin_name;
         $this->version = $version;
         $this->settings = new WP_Git_Plugins_Settings($this->plugin_name, $this->version);
+        $this->modules_manager = new WP_Git_Plugins_Manager($this->plugin_name, $this->version);
         $this->repository = new WP_Git_Plugins_Repository($this->settings);
         $this->local_plugins = WP_Git_Plugins_Local_Plugins::get_instance();
         $this->branch = WP_Git_Plugins_Branch::get_instance($this->settings);

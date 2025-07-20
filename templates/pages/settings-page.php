@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) {
 
 // Get settings
 $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
-$modules_manager = new WP_Git_Plugins_Manager('wp-git-plugins', '1.0.0');
+$modules = new WP_Git_Plugins_Manager('wp-git-plugins', '1.0.0');
 ?>
 <div class="wrap">
     <h1><?php echo esc_html(get_admin_page_title()); ?></h1>

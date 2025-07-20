@@ -44,6 +44,7 @@ class WP_Git_Plugins {
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-branch.php';
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-repository.php';
         require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-admin.php';
+        require_once WP_GIT_PLUGINS_DIR . 'includes/class-wp-git-plugins-modules.php';
         
         $this->loader = new WP_Git_Plugins_Loader();
     }
