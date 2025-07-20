@@ -1,10 +1,13 @@
 <?php
 /**
  * Fetch My Repos Module
+ *
  * Module Name: Fetch My Repos
- * Module Description: Adds a "Fetch My Repos" tab to the Add Repository section that allows fetching all repositories for a GitHub user
- * Module Version: 1.0.0
- * Module Author: WeAreCode045
+ * Description: Adds a "Fetch My Repos" tab to the Add Repository section that allows fetching all repositories for a GitHub user
+ * Version: 1.0.0
+ * Author: WeAreCode045
+ * Requires: 1.0.0
+ * Tested up to: 1.0.0
  */
 
 // Exit if accessed directly

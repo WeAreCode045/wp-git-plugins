@@ -52,7 +52,7 @@ class WP_Git_Plugins_Modules {
      * Constructor
      */
     private function __construct() {
-        $this->modules_dir = WP_PLUGIN_DIR . '/wp-git-plugins/modules';
+        $this->modules_dir = WP_GIT_PLUGINS_DIR . 'modules';
         $this->init();
     }
 

@@ -5,6 +5,7 @@ class WP_Git_Plugins {
     protected $version;
     protected $repository;
     protected $settings;
+    protected $modules;
 
     public function __construct() {
         $this->plugin_name = 'wp-git-plugins';
@@ -24,6 +25,9 @@ class WP_Git_Plugins {
         
         // Initialize Local_Plugins to ensure AJAX handlers are registered
         WP_Git_Plugins_Local_Plugins::get_instance();
+        
+        // Initialize Modules system
+        $this->modules = WP_Git_Plugins_Modules::get_instance();
         
         $this->define_admin_hooks();
         $this->define_public_hooks();
