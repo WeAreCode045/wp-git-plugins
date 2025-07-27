@@ -444,6 +444,8 @@ class WP_Git_Plugins_Modules {
             
             if (is_wp_error($result)) {
                 throw new Exception($result->get_error_message());
+            } elseif ($result === false) {
+                throw new Exception(__('Module deactivation failed.', 'wp-git-plugins'));
             }
 
             wp_send_json_success([
