@@ -57,7 +57,7 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         if ($hook === 'toplevel_page_wp-git-plugins') {
             wp_enqueue_style(
                 'wp-git-plugins-fetch-repos',
-                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/assets/css/fetch-repos.css',
+                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/assets/css/fetch-my-repos.css',
                 array(),
                 '1.0.0'
             );
