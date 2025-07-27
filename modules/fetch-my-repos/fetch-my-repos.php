@@ -86,27 +86,34 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         if (!wp_verify_nonce($_POST['_ajax_nonce'], 'wp_git_plugins_admin')) {
             wp_die('Security check failed');
         }
-        
-        $username = sanitize_text_field($_POST['username']);
-        
-        if (empty($username)) {
-            wp_send_json_error('Username is required');
+
+        // Get settings
+        if (!class_exists('WP_Git_Plugins_Settings')) {
+            wp_send_json_error('Settings class not found');
         }
-        
-        // Get GitHub API instance
-        $github_api = new WP_Git_Plugins_Github_API();
-        
-        // Fetch user repositories
-        $repos = $github_api->get_user_repositories($username);
-        
+        $settings = new WP_Git_Plugins_Settings('wp-git-plugins', '1.0.0');
+        $token = $settings->get_github_token();
+        $username = $settings->get_github_username();
+
+        if (empty($token) || empty($username)) {
+            wp_send_json_error('GitHub username or token not set in settings.');
+        }
+
+        // Use the authenticated user's /user/repos endpoint for private/public repos
+        $github_api = WP_Git_Plugins_Github_API::get_instance($token);
+        if (!method_exists($github_api, 'get_authenticated_user_repositories')) {
+            wp_send_json_error('API method get_authenticated_user_repositories not found.');
+        }
+        $repos = $github_api->get_authenticated_user_repositories();
+
         if (is_wp_error($repos)) {
             wp_send_json_error($repos->get_error_message());
         }
-        
+
         if (empty($repos)) {
-            wp_send_json_error('No repositories found for user: ' . $username);
+            wp_send_json_error('No repositories found for authenticated user.');
         }
-        
+
         // Format repositories for response
         $formatted_repos = array();
         foreach ($repos as $repo) {
@@ -120,7 +127,7 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
                 'updated_at' => $repo['updated_at']
             );
         }
-        
+
         wp_send_json_success(array(
             'repositories' => $formatted_repos,
             'count' => count($formatted_repos)
