@@ -23,7 +23,7 @@ if ($repositories) {
     <input type="hidden" name="action" value="wp_git_plugins_add_repository">
     <input type="url" name="repo_url" id="repo-url" class="regular-text" required placeholder="<?php esc_attr_e('Repository URL', 'wp-git-plugins'); ?>" style="min-width: 260px;" title="<?php esc_attr_e('Repository URL', 'wp-git-plugins'); ?>">
     <input type="text" name="repo_branch" id="repo-branch" class="regular-text" value="main" placeholder="<?php esc_attr_e('Branch', 'wp-git-plugins'); ?>" style="min-width: 100px;" title="<?php esc_attr_e('Branch', 'wp-git-plugins'); ?>">
-    <label for="repo-private" style="margin-bottom: 0; display: flex; align-items: center; gap: 4px;">
+    <label for="repo-private" style="margin-bottom: 0; display: flex; align-items: center; gap: 4px; justify-content: space-evenly; flex-direction: row; flex-wrap: nowrap;">
         <input type="checkbox" name="repo_private" id="repo-private" value="1">
         <?php esc_html_e('Private', 'wp-git-plugins'); ?>
     </label>
