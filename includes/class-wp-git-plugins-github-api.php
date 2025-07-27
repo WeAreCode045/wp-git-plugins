@@ -685,10 +685,8 @@ class WP_Git_Plugins_Github_API {
         if (empty($username)) {
             return new WP_Error('invalid_username', 'Username is required');
         }
-        
         // Sanitize username
         $username = sanitize_text_field($username);
-        
         // Build API URL for user repositories
         $url = $this->api_base . '/users/' . $username . '/repos';
         $url = add_query_arg(array(
@@ -698,38 +696,28 @@ class WP_Git_Plugins_Github_API {
             'per_page' => min($per_page, 100), // GitHub max is 100
             'page' => max($page, 1)
         ), $url);
-        
         // Check cache first
         $cache_key = 'wpgp_user_repos_' . md5($username . $per_page . $page);
         $cached_data = get_transient($cache_key);
-        
         if (false !== $cached_data) {
             return $cached_data;
         }
-        
         // Make API request
-        $response = $this->make_request($url, true, 30);
-        
-        if (is_wp_error($response)) {
-            return $response;
+        $repositories = $this->make_request($url, true, 30);
+        if (is_wp_error($repositories)) {
+            return $repositories;
         }
-        
-        // Parse response
-        $response_body = wp_remote_retrieve_body($response);
-        $repositories = json_decode($response_body, true);
-        
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            return new WP_Error('json_error', 'Failed to parse GitHub API response');
-        }
-        
         if (!is_array($repositories)) {
-            // Check for API error message
-            if (isset($repositories['message'])) {
+            // If $repositories is a WP_Error, return as is
+            if (is_wp_error($repositories)) {
+                return $repositories;
+            }
+            // Check for API error message if $repositories is an array/object
+            if (is_array($repositories) && isset($repositories['message'])) {
                 return new WP_Error('github_api_error', $repositories['message']);
             }
             return new WP_Error('invalid_response', 'Invalid response from GitHub API');
         }
-        
         // Format repositories for consistency
         $formatted_repos = array();
         foreach ($repositories as $repo) {
@@ -753,10 +741,8 @@ class WP_Git_Plugins_Github_API {
                 'disabled' => $repo['disabled']
             );
         }
-        
         // Cache for 10 minutes
         set_transient($cache_key, $formatted_repos, 600);
-        
         return $formatted_repos;
     }
 }
