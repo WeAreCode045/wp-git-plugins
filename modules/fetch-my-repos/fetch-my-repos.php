@@ -39,7 +39,7 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         if ($hook === 'toplevel_page_wp-git-plugins') {
             wp_enqueue_script(
                 'wp-git-plugins-fetch-repos',
-                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/fetch-repos.js',
+                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/assets/js/fetch-my-repos.js',
                 array('jquery'),
                 '1.0.0',
                 true
@@ -57,7 +57,7 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         if ($hook === 'toplevel_page_wp-git-plugins') {
             wp_enqueue_style(
                 'wp-git-plugins-fetch-repos',
-                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/fetch-repos.css',
+                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/assets/css/fetch-repos.css',
                 array(),
                 '1.0.0'
             );
