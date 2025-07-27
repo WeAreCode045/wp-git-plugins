@@ -83,22 +83,9 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             </p>
             <div id="fetch-repos-results" style="display: none;">
                 <h4>Found Repositories</h4>
-                <form id="repos-list-form">
-                    <table id="repos-list-table" class="wp-list-table widefat fixed striped">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="select-all-repos"></th>
-                                <th>Name</th>
-                                <th>Branches</th>
-                                <th>Most Recent Commit (per branch)</th>
-                                <th>Description</th>
-                                <th>Language</th>
-                                <th>Private</th>
-                                <th>Link</th>
-                            </tr>
-                        </thead>
-                        <tbody id="repos-list"></tbody>
-                    </table>
+                <div id="repos-list"></div>
+                <div id="repos-list-table-container"></div>
+                <form id="repos-list-form" style="display:none;">
                     <p class="submit">
                         <button type="button" id="add-selected-repos" class="button button-secondary">
                             Add Selected Repositories

@@ -74,12 +74,25 @@ jQuery(document).ready(function($) {
     // Display repositories in a selectable list
     function displayRepositories(repositories) {
         var $reposList = $('#repos-list');
+        var $tableContainer = $('#repos-list-table-container');
         $reposList.empty();
+        $tableContainer.empty();
         if (repositories.length === 0) {
-            $reposList.html('<tr><td colspan="8">No repositories found.</td></tr>');
+            $tableContainer.html('<table class="wp-list-table widefat fixed striped"><tbody><tr><td colspan="8">No repositories found.</td></tr></tbody></table>');
             return;
         }
         var html = '';
+        html += '<table id="repos-list-table" class="wp-list-table widefat fixed striped">';
+        html += '<thead><tr>';
+        html += '<th><input type="checkbox" id="select-all-repos"></th>';
+        html += '<th>Name</th>';
+        html += '<th>Branches</th>';
+        html += '<th>Most Recent Commit (per branch)</th>';
+        html += '<th>Description</th>';
+        html += '<th>Language</th>';
+        html += '<th>Private</th>';
+        html += '<th>Link</th>';
+        html += '</tr></thead><tbody>';
         repositories.forEach(function(repo, idx) {
             var languageHtml = repo.language ? repo.language : '';
             var privateHtml = repo.private ? 'Private' : 'Public';
@@ -101,13 +114,12 @@ jQuery(document).ready(function($) {
             html += '<td><a href="' + repo.html_url + '" target="_blank">View</a></td>';
             html += '</tr>';
         });
-        $reposList.html(html);
-        // Select all/none functionality
-        $('#select-all-repos').on('click', function() {
-            $('#repos-list input[type="checkbox"]').prop('checked', true);
-        });
-        $('#select-none-repos').on('click', function() {
-            $('#repos-list input[type="checkbox"]').prop('checked', false);
+        html += '</tbody></table>';
+        $tableContainer.html(html);
+        // Select all functionality
+        $tableContainer.on('click', '#select-all-repos', function() {
+            var checked = $(this).is(':checked');
+            $tableContainer.find('input[type="checkbox"]').prop('checked', checked);
         });
     }
     
