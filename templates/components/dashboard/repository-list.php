@@ -18,7 +18,7 @@ if ($repositories) {
 <div class="wp-git-plugins-card">
     <div class="wp-git-plugins-card-header">
         <h2><?php esc_html_e('Repositories List', 'wp-git-plugins'); ?></h2>
-        <form id="wp-git-plugins-add-repo" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin: 0;">
+        <form id="wp-git-plugins-add-repo" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display: flex; align-items: center; justify-content: space-evenly; gap: 12px; flex-direction: row; flex-wrap: nowrap;">
     <?php wp_nonce_field('wp_git_plugins_add_repository', '_wpnonce'); ?>
     <input type="hidden" name="action" value="wp_git_plugins_add_repository">
     <input type="url" name="repo_url" id="repo-url" class="regular-text" required placeholder="<?php esc_attr_e('Repository URL', 'wp-git-plugins'); ?>" style="min-width: 260px;" title="<?php esc_attr_e('Repository URL', 'wp-git-plugins'); ?>">
