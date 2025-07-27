@@ -6,14 +6,9 @@ if (!defined('ABSPATH')) {
 <div class="wp-git-plugins-card">
     <h2><?php esc_html_e('Add Repository', 'wp-git-plugins'); ?></h2>
     
-    <!-- Tab Navigation -->
-    <nav class="nav-tab-wrapper">
-        <a href="#manual-add" class="nav-tab nav-tab-active"><?php esc_html_e('Manual Add', 'wp-git-plugins'); ?></a>
-        <?php 
-        // Allow modules to add their own tabs
-        do_action('wp_git_plugins_add_repository_tabs'); 
-        ?>
-    </nav>
+    <p>
+        <?php esc_html_e('Add a GitHub repository to your site.', 'wp-git-plugins'); ?>
+    </p>
     
     <!-- Tab Content -->
     <div class="tab-content-wrapper">
