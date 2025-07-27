@@ -5,32 +5,21 @@
 
 jQuery(document).ready(function($) {
     
-    // Handle fetch repos form submission
-    $('#fetch-repos-form').on('submit', function(e) {
+    // Handle fetch repos button click
+    $('#fetch-repos-btn').on('click', function(e) {
         e.preventDefault();
-        
-        var username = $('#github-username').val().trim();
-        
-        if (!username) {
-            alert('Please enter a GitHub username');
-            return;
-        }
-        
-        var $button = $(this).find('button[type="submit"]');
+        var $button = $(this);
         var $spinner = $button.find('.spinner');
         var $results = $('#fetch-repos-results');
-        
         $button.prop('disabled', true);
         $spinner.addClass('is-active');
         $results.hide();
-        
         $.ajax({
             url: wpGitPluginsFetchRepos.ajax_url,
             type: 'POST',
             data: {
                 action: 'wpgp_fetch_user_repos',
-                _ajax_nonce: wpGitPluginsFetchRepos.ajax_nonce,
-                username: username
+                _ajax_nonce: wpGitPluginsFetchRepos.ajax_nonce
             },
             success: function(response) {
                 if (response.success) {
