@@ -1,0 +1,9 @@
+{
+  "name": "GitHub Profile Widget",
+  "slug": "github-profile-widget",
+  "version": "1.0.0",
+  "description": "Shows GitHub account info (avatar, username, email, link) in the sidebar.",
+  "author": "WeAreCode045",
+  "main_file": "github-profile-widget.php",
+  "type": "widget"
+}

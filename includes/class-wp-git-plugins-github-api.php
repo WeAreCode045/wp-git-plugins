@@ -1,3 +1,23 @@
+    /**
+     * Get GitHub user profile data
+     *
+     * @param string $username
+     * @return array|WP_Error
+     */
+    public function get_user_profile($username) {
+        if (empty($username)) {
+            return new WP_Error('invalid_username', 'Username is required');
+        }
+        $url = $this->api_base . '/users/' . urlencode($username);
+        $profile = $this->make_request($url, true, 30);
+        if (is_wp_error($profile)) {
+            return $profile;
+        }
+        if (!is_array($profile) || !isset($profile['login'])) {
+            return new WP_Error('invalid_response', 'Invalid response from GitHub API');
+        }
+        return $profile;
+    }
 <?php
 /**
  * GitHub API class for WP Git Plugins

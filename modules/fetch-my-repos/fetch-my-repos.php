@@ -25,8 +25,7 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         if (!class_exists('WPGP_Fetch_My_Repos_DB')) {
             require_once __DIR__ . '/class-fetch-my-repos-db.php';
         }
-        add_action('wp_git_plugins_add_repository_tabs', array($this, 'add_fetch_tab'));
-        add_action('wp_git_plugins_add_repository_content', array($this, 'add_fetch_content'));
+        // No longer add sidebar tab or content. Addon will be rendered in main container.
         add_action('wp_ajax_wpgp_fetch_user_repos', array($this, 'handle_fetch_user_repos'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
     }
@@ -52,27 +51,11 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
     }
     
     /**
-     * Add the "Fetch My Repos" tab
-     */public function enqueue_styles($hook) {
-        if ($hook === 'toplevel_page_wp-git-plugins') {
-            wp_enqueue_style(
-                'wp-git-plugins-fetch-repos',
-                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/assets/css/fetch-my-repos.css',
-                array(),
-                '1.0.0'
-            );
-        }
-    }
-    public function add_fetch_tab() {
-        echo '<li><a href="#fetch-repos" class="nav-tab">Fetch My Repos</a></li>';
-    }
-    
-    /**
-     * Add the "Fetch My Repos" content
+     * Render the Fetch My Repos addon as a vertical tab in the main container
      */
-    public function add_fetch_content() {
+    public function render_addon() {
         ?>
-        <div id="fetch-repos" class="tab-content" style="display: none;">
+        <div id="fetch-my-repos-addon" class="wpgp-addon-tab" style="display: none;">
             <h3>Fetch My Repositories</h3>
             <p>This will fetch all repositories for the GitHub user configured in <strong>Settings</strong>.</p>
             <p>
