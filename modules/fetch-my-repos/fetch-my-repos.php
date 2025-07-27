@@ -183,7 +183,13 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             'count' => count($valid_repos)
         ));
 
-         function enqueue_scripts($hook) {
+         /**
+          * 
+          * @param mixed $hook
+          * @return void
+          **/
+
+    public function enqueue_scripts($hook) {
     if ($hook === 'toplevel_page_wp-git-plugins') {
         wp_enqueue_script(
             'wp-git-plugins-fetch-repos',
