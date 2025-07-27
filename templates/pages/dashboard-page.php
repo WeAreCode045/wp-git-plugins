@@ -40,55 +40,57 @@ if ($notice) {
                 }
             }
             ?>
-            <?php if (!empty($addon_modules)) : ?>
-                <div class="wpgp-vertical-tabs">
-                    <ul class="wpgp-tab-list">
-                        <?php foreach ($addon_modules as $i => $addon) : ?>
-                            <li class="wpgp-tab<?php if ($i === 0) echo ' active'; ?>" data-tab="wpgp-addon-<?php echo esc_attr($addon['slug']); ?>">
-                                <?php echo esc_html($addon['name']); ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                    <div class="wpgp-tab-contents">
-                        <?php foreach ($addon_modules as $i => $addon) : ?>
-                            <div class="wpgp-tab-content<?php if ($i === 0) echo ' active'; ?>" id="wpgp-addon-<?php echo esc_attr($addon['slug']); ?>">
-                                <?php
-                                if (!empty($addon['class']) && class_exists($addon['class']) && method_exists($addon['class'], 'render_addon')) {
-                                    call_user_func([$addon['class'], 'render_addon']);
-                                } elseif (function_exists('render_addon')) {
-                                    render_addon();
-                                }
-                                ?>
-                            </div>
-                        <?php endforeach; ?>
+            <div class="wpgp-vertical-tabs">
+                <ul class="wpgp-tab-list">
+                    <li class="wpgp-tab active" data-tab="wpgp-repo-list">
+                        <?php esc_html_e('Repositories', 'wp-git-plugins'); ?>
+                    </li>
+                    <?php foreach ($addon_modules as $i => $addon) : ?>
+                        <li class="wpgp-tab" data-tab="wpgp-addon-<?php echo esc_attr($addon['slug']); ?>">
+                            <?php echo esc_html($addon['name']); ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <div class="wpgp-tab-contents">
+                    <div class="wpgp-tab-content active" id="wpgp-repo-list">
+                        <?php include WP_GIT_PLUGINS_DIR . 'templates/components/dashboard/repository-list.php'; ?>
                     </div>
+                    <?php foreach ($addon_modules as $i => $addon) : ?>
+                        <div class="wpgp-tab-content" id="wpgp-addon-<?php echo esc_attr($addon['slug']); ?>">
+                            <?php
+                            if (!empty($addon['class']) && class_exists($addon['class']) && method_exists($addon['class'], 'render_addon')) {
+                                call_user_func([$addon['class'], 'render_addon']);
+                            } elseif (function_exists('render_addon')) {
+                                render_addon();
+                            }
+                            ?>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-                <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    var tabs = document.querySelectorAll('.wpgp-tab');
-                    var contents = document.querySelectorAll('.wpgp-tab-content');
-                    tabs.forEach(function(tab, idx) {
-                        tab.addEventListener('click', function() {
-                            tabs.forEach(function(t) { t.classList.remove('active'); });
-                            contents.forEach(function(c) { c.classList.remove('active'); });
-                            tab.classList.add('active');
-                            var target = document.getElementById(tab.getAttribute('data-tab'));
-                            if (target) target.classList.add('active');
-                        });
+            </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var tabs = document.querySelectorAll('.wpgp-tab');
+                var contents = document.querySelectorAll('.wpgp-tab-content');
+                tabs.forEach(function(tab, idx) {
+                    tab.addEventListener('click', function() {
+                        tabs.forEach(function(t) { t.classList.remove('active'); });
+                        contents.forEach(function(c) { c.classList.remove('active'); });
+                        tab.classList.add('active');
+                        var target = document.getElementById(tab.getAttribute('data-tab'));
+                        if (target) target.classList.add('active');
                     });
                 });
-                </script>
-                <style>
-                .wpgp-vertical-tabs { display: flex; }
-                .wpgp-tab-list { list-style: none; margin: 0; padding: 0; width: 200px; border-right: 1px solid #ddd; }
-                .wpgp-tab { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #eee; background: #f9f9f9; }
-                .wpgp-tab.active { background: #fff; font-weight: bold; border-right: 2px solid #0073aa; }
-                .wpgp-tab-content { display: none; padding: 24px; flex: 1; }
-                .wpgp-tab-content.active { display: block; }
-                </style>
-            <?php else : ?>
-                <?php include WP_GIT_PLUGINS_DIR . 'templates/components/dashboard/repository-list.php'; ?>
-            <?php endif; ?>
+            });
+            </script>
+            <style>
+            .wpgp-vertical-tabs { display: flex; }
+            .wpgp-tab-list { list-style: none; margin: 0; padding: 0; width: 200px; border-right: 1px solid #ddd; }
+            .wpgp-tab { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #eee; background: #f9f9f9; }
+            .wpgp-tab.active { background: #fff; font-weight: bold; border-right: 2px solid #0073aa; }
+            .wpgp-tab-content { display: none; padding: 24px; flex: 1; }
+            .wpgp-tab-content.active { display: block; }
+            </style>
         </div>
         <div class="wp-git-plugins-sidebar">
             <?php include WP_GIT_PLUGINS_DIR . 'templates/components/dashboard/add-repository.php'; ?>
