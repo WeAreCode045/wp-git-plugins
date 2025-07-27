@@ -148,12 +148,12 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             wp_send_json_error('GitHub username or token not set in settings.');
         }
 
-        // Use the authenticated user's /user/repos endpoint for private/public repos
+        // Use the user's /users/:username/repos endpoint for private/public repos
         $github_api = WP_Git_Plugins_Github_API::get_instance($token);
-        if (!method_exists($github_api, 'get_authenticated_user_repositories')) {
-            wp_send_json_error('API method get_authenticated_user_repositories not found.');
+        if (!method_exists($github_api, 'get_user_repositories')) {
+            wp_send_json_error('API method get_user_repositories not found.');
         }
-        $repos = $github_api->get_authenticated_user_repositories();
+        $repos = $github_api->get_user_repositories($username);
 
         if (is_wp_error($repos)) {
             wp_send_json_error($repos->get_error_message());
