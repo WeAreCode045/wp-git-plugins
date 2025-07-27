@@ -93,7 +93,6 @@ if ($notice) {
             </style>
         </div>
         <div class="wp-git-plugins-sidebar">
-            <?php include WP_GIT_PLUGINS_DIR . 'templates/components/dashboard/add-repository.php'; ?>
             <?php include WP_GIT_PLUGINS_DIR . 'templates/components/plugin-info.php'; ?>
             <?php
             // Render all active widget modules in the sidebar
