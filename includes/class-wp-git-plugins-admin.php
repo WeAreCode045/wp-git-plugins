@@ -219,8 +219,12 @@ class WP_Git_Plugins_Admin {
             );
         }
         
-        // Enqueue modules script on settings page
-        if ($hook === 'wp-git-plugins_page_wp-git-plugins-settings') {
+        // Enqueue modules.js on all settings-related pages (robust match)
+        if (
+            $hook === 'wp-git-plugins_page_wp-git-plugins-settings' ||
+            strpos($hook, 'wp-git-plugins-settings') !== false ||
+            strpos($hook, 'module') !== false
+        ) {
             wp_enqueue_script(
                 $this->plugin_name . '-modules',
                 WP_GIT_PLUGINS_URL . 'assets/js/modules.js',
