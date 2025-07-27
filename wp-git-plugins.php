@@ -3,7 +3,7 @@
  * Plugin Name: WP Git Plugins
  * Plugin URI: https://code045.nl/plugins/wp-git-plugins/
  * Description: Manage and install WordPress plugins directly from GitHub repositories with branch management and automatic updates.
- * Version: 1.0.14
+ * Version: 1.0.15
  * Requires at least: 5.6
  * Requires PHP: 7.4
  * Author: WeAreCode045
