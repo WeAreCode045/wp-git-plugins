@@ -21,6 +21,7 @@ if ($notice) {
     
     <div class="wp-git-plugins-container">
         <div class="wp-git-plugins-main">
+            <?php include WP_GIT_PLUGINS_DIR . 'templates/components/dashboard/add-repository.php'; ?>
             <?php
             // Collect all active addon modules
             $modules_manager = WP_Git_Plugins_Modules::get_instance();
