@@ -89,6 +89,14 @@ jQuery(document).ready(function($) {
         var moduleSlug = $button.data('module');
         var nonce = $('#_ajax_nonce').val();
         
+        if (!moduleSlug) {
+            alert('Module slug is missing.');
+            return;
+        }
+        
+        // Debugging: Log the button click and data
+        console.log('Activate button clicked for module:', moduleSlug);
+        
         $button.prop('disabled', true).text('Activating...');
         
         $.ajax({
@@ -100,15 +108,18 @@ jQuery(document).ready(function($) {
                 _ajax_nonce: nonce
             },
             success: function(response) {
+                console.log('AJAX success:', response);
                 if (response.success) {
                     alert(response.data.message || 'Module activated successfully.');
                     location.reload(); // Reload the page to reflect changes
                 } else {
+                    console.error('AJAX error response:', response);
                     alert(response.data.message || 'Activation failed.');
                     $button.prop('disabled', false).text('Activate');
                 }
             },
-            error: function() {
+            error: function(xhr, status, error) {
+                console.error('AJAX error:', status, error);
                 alert('AJAX error occurred.');
                 $button.prop('disabled', false).text('Activate');
             }

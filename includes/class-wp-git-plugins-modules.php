@@ -67,29 +67,36 @@ class WP_Git_Plugins_Modules {
 
         // Register AJAX handlers
         add_action('wp_ajax_wpgp_upload_module', array($this, 'ajax_upload_module'));
-        add_action('wp_ajax_wpgp_activate_module', function() {
-            // Verify the nonce
-            check_ajax_referer('wpgp_module_nonce', '_ajax_nonce');
+        add_action('wp_ajax_wpgp_activate_module', function () {
+            error_log('AJAX handler called for module activation.');
 
-            // Get the module slug
+            // Verify the nonce
+            if (!check_ajax_referer('wpgp_module_nonce', '_ajax_nonce', false)) {
+                error_log('Nonce verification failed.');
+                wp_send_json_error(['message' => 'Invalid nonce.']);
+            }
+
             $module_slug = sanitize_text_field($_POST['module_slug'] ?? '');
+            error_log('Module slug: ' . $module_slug);
 
             if (empty($module_slug)) {
+                error_log('Module slug is missing.');
                 wp_send_json_error(['message' => 'Module slug is missing.']);
             }
 
-            // Check if the modules manager class exists
             if (!class_exists('WP_Git_Plugins_Modules')) {
+                error_log('Modules manager class not found.');
                 wp_send_json_error(['message' => 'Modules manager not found.']);
             }
 
-            // Activate the module
             $modules_manager = WP_Git_Plugins_Modules::get_instance();
             $result = $modules_manager->activate_module($module_slug);
 
             if ($result === true) {
+                error_log("Module '{$module_slug}' activated successfully.");
                 wp_send_json_success(['message' => "Module '{$module_slug}' activated successfully."]);
             } else {
+                error_log('Activation failed.');
                 wp_send_json_error(['message' => is_string($result) ? $result : 'Activation failed.']);
             }
         });

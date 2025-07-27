@@ -36,7 +36,7 @@ if (class_exists("WP_Git_Plugins_Modules")) {
         <h3><?php esc_html_e("Upload Module", "wp-git-plugins"); ?></h3>
         
         <form id="module-upload-form" enctype="multipart/form-data">
-            <?php wp_nonce_field('wpgp_upload_module', '_ajax_nonce'); ?>
+            <?php wp_nonce_field('wpgp_module_nonce', '_ajax_nonce'); ?>
             
             <table class="form-table" role="presentation">
                 <tbody>
