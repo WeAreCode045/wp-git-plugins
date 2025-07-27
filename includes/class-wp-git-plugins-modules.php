@@ -68,10 +68,10 @@ class WP_Git_Plugins_Modules {
         // Register AJAX handlers
         add_action('wp_ajax_wpgp_upload_module', array($this, 'ajax_upload_module'));
         add_action('wp_ajax_wpgp_activate_module', function() {
-            // Verify the nonce for security
+            // Verify the nonce
             check_ajax_referer('wpgp_module_nonce', '_ajax_nonce');
 
-            // Get the module slug from the request
+            // Get the module slug
             $module_slug = sanitize_text_field($_POST['module_slug'] ?? '');
 
             if (empty($module_slug)) {
