@@ -5,6 +5,7 @@
     "description": "Adds a 'Fetch My Repos' tab to the Add Repository section that allows fetching all repositories for a GitHub user",
     "author": "WeAreCode045",
     "main_file": "fetch-my-repos.php",
+    "type": "addon",
     "requires_wp_version": "5.0",
     "requires_plugin_version": "1.0.0"
 }

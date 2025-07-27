@@ -53,7 +53,7 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
     /**
      * Render the Fetch My Repos addon as a vertical tab in the main container
      */
-    public function render_addon() {
+    public static function render_addon() {
         ?>
         <div id="fetch-my-repos-addon" class="wpgp-addon-tab" style="display: none;">
             <h3>Fetch My Repositories</h3>
