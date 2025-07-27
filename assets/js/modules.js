@@ -93,6 +93,7 @@ jQuery(document).ready(function($) {
         
         var $button = $(this);
         var moduleSlug = $button.data('module');
+        var nonce = $('#_ajax_nonce').val();
         
         console.log('Button jQuery object:', $button);
         console.log('Module slug from data-module:', moduleSlug);
@@ -110,7 +111,7 @@ jQuery(document).ready(function($) {
         }
         
         console.log('Disabling button...');
-        $button.prop('disabled', true);
+        $button.prop('disabled', true).text('Activating...');
         
         console.log('Making AJAX request to:', wpGitPlugins.ajax_url);
         console.log('With nonce:', wpGitPlugins.ajax_nonce);
@@ -142,7 +143,7 @@ jQuery(document).ready(function($) {
                 } else {
                     console.error('Activation failed:', response.data);
                     showModuleNotice('error', response.data.message || 'Activation failed');
-                    $button.prop('disabled', false);
+                    $button.prop('disabled', false).text('Activate');
                 }
             },
             error: function(xhr, status, error) {
@@ -153,7 +154,7 @@ jQuery(document).ready(function($) {
                 console.error('Response text:', xhr.responseText);
                 
                 showModuleNotice('error', 'Activation failed. Please try again.');
-                $button.prop('disabled', false);
+                $button.prop('disabled', false).text('Activate');
             }
         });
     });
