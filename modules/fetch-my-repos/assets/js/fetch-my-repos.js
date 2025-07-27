@@ -75,47 +75,37 @@ jQuery(document).ready(function($) {
     function displayRepositories(repositories) {
         var $reposList = $('#repos-list');
         $reposList.empty();
-        
         if (repositories.length === 0) {
-            $reposList.html('<p>No repositories found.</p>');
+            $reposList.html('<tr><td colspan="8">No repositories found.</td></tr>');
             return;
         }
-        
-        var html = '<div class="repos-grid">';
-        
-        repositories.forEach(function(repo) {
-            var languageHtml = repo.language ? '<span class="language">' + repo.language + '</span>' : '';
-            var privateHtml = repo.private ? '<span class="private">Private</span>' : '<span class="public">Public</span>';
-            var description = repo.description || 'No description available';
-            
-            html += '<div class="repo-item">';
-            html += '<label>';
-            html += '<input type="checkbox" data-repo="' + encodeURIComponent(JSON.stringify(repo)) + '" />';
-            html += '<div class="repo-details">';
-            html += '<h4>' + repo.name + ' ' + privateHtml + '</h4>';
-            html += '<p class="description">' + description + '</p>';
-            html += '<div class="repo-meta">';
-            html += languageHtml;
-            html += '<span class="updated">Updated: ' + formatDate(repo.updated_at) + '</span>';
-            html += '</div>';
-            html += '</div>';
-            html += '</label>';
-            html += '</div>';
+        var html = '';
+        repositories.forEach(function(repo, idx) {
+            var languageHtml = repo.language ? repo.language : '';
+            var privateHtml = repo.private ? 'Private' : 'Public';
+            var description = repo.description || '';
+            var branchNames = '';
+            var branchCommits = '';
+            if (Array.isArray(repo.branches) && repo.branches.length) {
+                branchNames = repo.branches.map(function(b){ return b.name; }).join('<br>');
+                branchCommits = repo.branches.map(function(b){ return b.latest_commit ? formatDate(b.latest_commit) : '-'; }).join('<br>');
+            }
+            html += '<tr>';
+            html += '<td><input type="checkbox" data-repo="' + encodeURIComponent(JSON.stringify(repo)) + '" /></td>';
+            html += '<td>' + repo.name + '</td>';
+            html += '<td>' + branchNames + '</td>';
+            html += '<td>' + branchCommits + '</td>';
+            html += '<td>' + description + '</td>';
+            html += '<td>' + languageHtml + '</td>';
+            html += '<td>' + privateHtml + '</td>';
+            html += '<td><a href="' + repo.html_url + '" target="_blank">View</a></td>';
+            html += '</tr>';
         });
-        
-        html += '</div>';
-        html += '<div class="select-actions">';
-        html += '<button type="button" id="select-all-repos" class="button">Select All</button>';
-        html += '<button type="button" id="select-none-repos" class="button">Select None</button>';
-        html += '</div>';
-        
         $reposList.html(html);
-        
-        // Add select all/none functionality
+        // Select all/none functionality
         $('#select-all-repos').on('click', function() {
             $('#repos-list input[type="checkbox"]').prop('checked', true);
         });
-        
         $('#select-none-repos').on('click', function() {
             $('#repos-list input[type="checkbox"]').prop('checked', false);
         });

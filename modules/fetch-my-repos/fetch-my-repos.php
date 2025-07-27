@@ -83,46 +83,30 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             </p>
             <div id="fetch-repos-results" style="display: none;">
                 <h4>Found Repositories</h4>
-                <div id="repos-list"></div>
-                <p class="submit">
-                    <button type="button" id="add-selected-repos" class="button button-secondary">
-                        Add Selected Repositories
-                        <span class="spinner"></span>
-                    </button>
-                </p>
+                <form id="repos-list-form">
+                    <table id="repos-list-table" class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="select-all-repos"></th>
+                                <th>Name</th>
+                                <th>Branches</th>
+                                <th>Most Recent Commit (per branch)</th>
+                                <th>Description</th>
+                                <th>Language</th>
+                                <th>Private</th>
+                                <th>Link</th>
+                            </tr>
+                        </thead>
+                        <tbody id="repos-list"></tbody>
+                    </table>
+                    <p class="submit">
+                        <button type="button" id="add-selected-repos" class="button button-secondary">
+                            Add Selected Repositories
+                            <span class="spinner"></span>
+                        </button>
+                    </p>
+                </form>
             </div>
-            <?php
-            // Show fetched repos from DB
-            if (class_exists('WPGP_Fetch_My_Repos_DB')) {
-                global $wpdb;
-                $table = WPGP_Fetch_My_Repos_DB::get_instance()->get_table_name();
-                $repos = $wpdb->get_results("SELECT * FROM $table ORDER BY most_recent_fetch DESC");
-                if ($repos) {
-                    echo '<h4>Fetched Plugin Repositories</h4>';
-                    echo '<table class="wp-list-table widefat fixed striped"><thead><tr>';
-                    echo '<th>Plugin Name</th><th>Owner</th><th>Branches</th><th>First Fetch</th><th>Last Fetch</th><th>Installed</th><th>Action</th>';
-                    echo '</tr></thead><tbody>';
-                    foreach ($repos as $repo) {
-                        echo '<tr>';
-                        echo '<td>' . esc_html($repo->plugin_name) . '</td>';
-                        echo '<td>' . esc_html($repo->owner) . '</td>';
-                        echo '<td>' . esc_html($repo->branches) . '</td>';
-                        echo '<td>' . esc_html($repo->first_fetch) . '</td>';
-                        echo '<td>' . esc_html($repo->most_recent_fetch) . '</td>';
-                        echo '<td>' . ($repo->is_installed ? '<span style="color:green">Yes</span>' : '<span style="color:#d63638">No</span>') . '</td>';
-                        echo '<td>';
-                        if (!$repo->is_installed) {
-                            echo '<button class="button add-to-repo-list" data-repo-url="' . esc_attr($repo->repo_url) . '">Add to repo list</button>';
-                        } else {
-                            echo '<span style="color:gray">Already added</span>';
-                        }
-                        echo '</td>';
-                        echo '</tr>';
-                    }
-                    echo '</tbody></table>';
-                }
-            }
-            ?>
         </div>
         <?php
     }
@@ -163,35 +147,46 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             wp_send_json_error('No repositories found for authenticated user.');
         }
 
-        // DEBUG: Return all repositories from the API result for debugging
-        $simple_repos = array();
+        // Fetch all repos, get branches and latest commit per branch, return for display
+        $repos_list = array();
         foreach ($repos as $repo) {
-            $simple_repos[] = array(
+            $branches_url = $repo['branches_url'];
+            $branches_url = preg_replace('/\{.*\}/', '', $branches_url); // remove {branch} template
+            $branches_response = wp_remote_get($branches_url);
+            $branches = json_decode(wp_remote_retrieve_body($branches_response), true);
+            $branch_data = array();
+            if (is_array($branches)) {
+                foreach ($branches as $branch) {
+                    $branch_name = $branch['name'];
+                    $commit_url = $branch['commit']['url'];
+                    $commit_response = wp_remote_get($commit_url);
+                    $commit = json_decode(wp_remote_retrieve_body($commit_response), true);
+                    $commit_date = isset($commit['commit']['committer']['date']) ? $commit['commit']['committer']['date'] : '';
+                    $branch_data[] = array(
+                        'name' => $branch_name,
+                        'latest_commit' => $commit_date
+                    );
+                }
+            }
+            $repos_list[] = array(
                 'name' => $repo['name'],
                 'full_name' => $repo['full_name'],
                 'description' => $repo['description'],
-                'clone_url' => $repo['clone_url'],
+                'branches' => $branch_data,
                 'private' => $repo['private'],
                 'language' => $repo['language'],
-                'updated_at' => $repo['updated_at']
+                'html_url' => $repo['html_url']
             );
         }
         wp_send_json_success(array(
-            'repositories' => $simple_repos,
-            'count' => count($simple_repos)
+            'repositories' => $repos_list,
+            'count' => count($repos_list)
         ));
 
     // End of method
 }
 
-    /**
-     * Check if file contents contain a valid WP plugin header
-     */
-    private function is_valid_wp_plugin($file_contents) {
-        if (empty($file_contents)) return false;
-        $pattern = '/^\s*Plugin Name\s*:/mi';
-        return preg_match($pattern, $file_contents);
-    }
+    // No longer checking for WP plugin header
 // End of class
     /**
      * Enqueue module scripts
