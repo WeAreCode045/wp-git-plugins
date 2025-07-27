@@ -21,19 +21,48 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
      * Initialize the module
      */
     public function init() {
-        require_once __DIR__ . '/class-fetch-my-repos-db.php';
-        // Ensure table exists on every admin load
-        add_action('admin_init', function() {
-            WPGP_Fetch_My_Repos_DB::get_instance();
-        });
+        // Ensure the DB class is loaded
+        if (!class_exists('WPGP_Fetch_My_Repos_DB')) {
+            require_once __DIR__ . '/class-fetch-my-repos-db.php';
+    }
+
         add_action('wp_git_plugins_add_repository_tabs', array($this, 'add_fetch_tab'));
         add_action('wp_git_plugins_add_repository_content', array($this, 'add_fetch_content'));
         add_action('wp_ajax_wpgp_fetch_user_repos', array($this, 'handle_fetch_user_repos'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
-    }
+    
     /**
      * Enqueue module scripts
      */
+    public function enqueue_scripts($hook) {
+        if ($hook === 'toplevel_page_wp-git-plugins') {
+            wp_enqueue_script(
+                'wp-git-plugins-fetch-repos',
+                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/fetch-repos.js',
+                array('jquery'),
+                '1.0.0',
+                true
+            );
+            wp_localize_script('wp-git-plugins-fetch-repos', 'wpGitPluginsFetchRepos', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'ajax_nonce' => wp_create_nonce('wp_git_plugins_admin')
+            ));
+        }
+    }
+    }
+    
+    /**
+     * Add the "Fetch My Repos" tab
+     */public function enqueue_styles($hook) {
+        if ($hook === 'toplevel_page_wp-git-plugins') {
+            wp_enqueue_style(
+                'wp-git-plugins-fetch-repos',
+                WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/fetch-repos.css',
+                array(),
+                '1.0.0'
+            );
+        }
+    }
     public function add_fetch_tab() {
         echo '<li><a href="#fetch-repos" class="nav-tab">Fetch My Repos</a></li>';
     }
@@ -45,26 +74,13 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         ?>
         <div id="fetch-repos" class="tab-content" style="display: none;">
             <h3>Fetch My Repositories</h3>
-            <p>Enter a GitHub username to fetch all public repositories for that user.</p>
-            <form id="fetch-repos-form">
-                <table class="form-table">
-                    <tr>
-                        <th scope="row">
-                            <label for="github-username">GitHub Username</label>
-                        </th>
-                        <td>
-                            <input type="text" id="github-username" name="github_username" class="regular-text" required />
-                            <p class="description">Enter the GitHub username to fetch repositories for</p>
-                        </td>
-                    </tr>
-                </table>
-                <p class="submit">
-                    <button type="submit" class="button button-primary">
-                        Fetch Repositories
-                        <span class="spinner"></span>
-                    </button>
-                </p>
-            </form>
+            <p>This will fetch all repositories for the GitHub user configured in <strong>Settings</strong>.</p>
+            <p>
+                <button type="button" id="fetch-repos-btn" class="button button-primary">
+                    Fetch Repositories
+                    <span class="spinner"></span>
+                </button>
+            </p>
             <div id="fetch-repos-results" style="display: none;">
                 <h4>Found Repositories</h4>
                 <div id="repos-list"></div>
