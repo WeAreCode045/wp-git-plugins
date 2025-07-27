@@ -182,6 +182,22 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             'repositories' => $valid_repos,
             'count' => count($valid_repos)
         ));
+
+         function enqueue_scripts($hook) {
+    if ($hook === 'toplevel_page_wp-git-plugins') {
+        wp_enqueue_script(
+            'wp-git-plugins-fetch-repos',
+            WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/fetch-repos.js',
+            array('jquery'),
+            '1.0.0',
+            true
+        );
+        wp_localize_script('wp-git-plugins-fetch-repos', 'wpGitPluginsFetchRepos', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'ajax_nonce' => wp_create_nonce('wp_git_plugins_admin')
+        ));
+    }
+}
         // End of method
     }
 
