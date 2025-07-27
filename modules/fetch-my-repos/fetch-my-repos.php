@@ -1,4 +1,3 @@
-}
 <?php
 /**
  * Fetch My Repos Module
@@ -33,8 +32,7 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
     }
     /**
-    
-     * Add the "Fetch My Repos" tab
+     * Enqueue module scripts
      */
     public function add_fetch_tab() {
         echo '<li><a href="#fetch-repos" class="nav-tab">Fetch My Repos</a></li>';
