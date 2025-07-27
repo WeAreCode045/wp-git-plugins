@@ -68,13 +68,27 @@ class WP_Git_Plugins_Modules {
         // Register AJAX handlers
         add_action('wp_ajax_wpgp_upload_module', array($this, 'ajax_upload_module'));
         add_action('wp_ajax_wpgp_activate_module', function() {
-            check_ajax_referer('wpgp_upload_module'); // Use the same nonce as your form
+            // Verify the nonce for security
+            check_ajax_referer('wpgp_module_nonce', '_ajax_nonce');
+
+            // Get the module slug from the request
             $module_slug = sanitize_text_field($_POST['module_slug'] ?? '');
-            // Your activation logic here, e.g.:
+
+            if (empty($module_slug)) {
+                wp_send_json_error(['message' => 'Module slug is missing.']);
+            }
+
+            // Check if the modules manager class exists
+            if (!class_exists('WP_Git_Plugins_Modules')) {
+                wp_send_json_error(['message' => 'Modules manager not found.']);
+            }
+
+            // Activate the module
             $modules_manager = WP_Git_Plugins_Modules::get_instance();
             $result = $modules_manager->activate_module($module_slug);
+
             if ($result === true) {
-                wp_send_json_success(['message' => 'Module activated.']);
+                wp_send_json_success(['message' => "Module '{$module_slug}' activated successfully."]);
             } else {
                 wp_send_json_error(['message' => is_string($result) ? $result : 'Activation failed.']);
             }
