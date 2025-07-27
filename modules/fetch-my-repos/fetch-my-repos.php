@@ -24,13 +24,13 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         // Ensure the DB class is loaded
         if (!class_exists('WPGP_Fetch_My_Repos_DB')) {
             require_once __DIR__ . '/class-fetch-my-repos-db.php';
-    }
-
+        }
         add_action('wp_git_plugins_add_repository_tabs', array($this, 'add_fetch_tab'));
         add_action('wp_git_plugins_add_repository_content', array($this, 'add_fetch_content'));
         add_action('wp_ajax_wpgp_fetch_user_repos', array($this, 'handle_fetch_user_repos'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
     }
+    
 
     /**
      * Enqueue module scripts
