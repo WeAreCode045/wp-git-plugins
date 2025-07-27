@@ -1,5 +1,13 @@
 <?php
 /**
+ * WP Git Plugins Modules Class
+ *
+ * Handles module management including loading, activating, and deactivating modules.
+ *
+ * @package    WP_Git_Plugins
+ * @subpackage Modules
+ * @author     WeAreCode045 
+
  * WP Git Plugins Modules Manager
  *
  * Handles module/addon system including upload, extraction, and loading of modules

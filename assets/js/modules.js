@@ -82,49 +82,33 @@ jQuery(document).ready(function($) {
     });
     
     // Handle module activation
-    $(document).on('click', '.activate-module', function(e) {
-        e.preventDefault();
-        
-        var $button = $(this);
-        var moduleSlug = $button.data('module');
-        var nonce = $('#_ajax_nonce').val();
-        
-        if (!moduleSlug) {
-            alert('Module slug is missing.');
-            return;
+    $(document).on("click", ".activate-module", function(e) {
+    e.preventDefault();
+    
+    var $button = $(this);
+    var moduleSlug = $button.data("module");
+    var nonce = $('#_ajax_nonce').val();
+    
+    $button.prop('disabled', true).text('Activating...');
+    
+    $.ajax({
+        url: wpGitPlugins.ajax_url,
+        type: 'POST',
+        data: {
+            action: 'wpgp_activate_module',
+            module_slug: moduleSlug,
+            _ajax_nonce: nonce
+        },
+        success: function(response) {
+            console.log(response);
+            // Handle activation success
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr.responseText);
+            // Handle activation error
         }
-        
-        // Debugging: Log the button click and data
-        console.log('Activate button clicked for module:', moduleSlug);
-        
-        $button.prop('disabled', true).text('Activating...');
-        
-        $.ajax({
-            url: ajaxurl, // WordPress AJAX URL
-            type: 'POST',
-            data: {
-                action: 'wpgp_activate_module',
-                module_slug: moduleSlug,
-                _ajax_nonce: nonce
-            },
-            success: function(response) {
-                console.log('AJAX success:', response);
-                if (response.success) {
-                    alert(response.data.message || 'Module activated successfully.');
-                    location.reload(); // Reload the page to reflect changes
-                } else {
-                    console.error('AJAX error response:', response);
-                    alert(response.data.message || 'Activation failed.');
-                    $button.prop('disabled', false).text('Activate');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX error:', status, error);
-                alert('AJAX error occurred.');
-                $button.prop('disabled', false).text('Activate');
-            }
-        });
     });
+});
     
     // Handle module deactivation
     $(document).on('click', '.deactivate-module', function(e) {
