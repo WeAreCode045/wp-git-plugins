@@ -8,6 +8,8 @@
 .wp-git-plugins-main {
     flex: 1;
     max-width: 70%;
+    background: #fcfcfc;
+    padding: 2%;
 }
 
 .wp-git-plugins-sidebar {
