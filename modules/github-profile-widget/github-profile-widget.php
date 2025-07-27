@@ -1,3 +1,4 @@
+
 <?php
 if (!defined('ABSPATH')) exit;
 
@@ -14,8 +15,41 @@ class WPGP_GitHub_Profile_Widget {
             echo '<div class="wp-git-plugins-card"><p>GitHub account not connected.</p></div>';
             return;
         }
-        $api = WP_Git_Plugins_Github_API::get_instance($token);
-        $profile = $api->get_user_profile($username);
+   /**
+ * Get GitHub user profile data (for widget use only)
+ *
+ * @param string $username
+ * @param string $token Optional GitHub token for authenticated requests
+ * @return array|WP_Error
+ */
+function wpgp_github_profile_widget_get_user_profile($username, $token = '') {
+    if (empty($username)) {
+        return new WP_Error('invalid_username', 'Username is required');
+    }
+    $api_base = 'https://api.github.com';
+    $url = $api_base . '/users/' . urlencode($username);
+    $args = [
+        'timeout' => 30,
+        'headers' => [
+            'Accept' => 'application/vnd.github.v3+json',
+            'User-Agent' => 'WP-Git-Plugins/1.0',
+        ],
+    ];
+    if (!empty($token)) {
+        $args['headers']['Authorization'] = 'token ' . $token;
+    }
+    $response = wp_remote_get($url, $args);
+    if (is_wp_error($response)) {
+        return $response;
+    }
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+    if (!is_array($data) || !isset($data['login'])) {
+        return new WP_Error('invalid_response', 'Invalid response from GitHub API');
+    }
+    return $data;
+}     
+        $profile = wpgp_github_profile_widget_get_user_profile($username, $token);
         if (is_wp_error($profile) || empty($profile['login'])) {
             echo '<div class="wp-git-plugins-card"><p>Could not fetch GitHub profile.</p></div>';
             return;
