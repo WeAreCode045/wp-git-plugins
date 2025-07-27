@@ -163,40 +163,22 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             wp_send_json_error('No repositories found for authenticated user.');
         }
 
-        // Only keep repos that are valid WP plugins (by checking for plugin header in main file)
-        $valid_repos = array();
+        // DEBUG: Return all repositories from the API result for debugging
+        $simple_repos = array();
         foreach ($repos as $repo) {
-            // Try to fetch the main plugin file from the repo (assume repo name matches folder and main file)
-            $main_file = $repo['name'] . '.php';
-            $raw_url = sprintf('https://raw.githubusercontent.com/%s/%s/%s/%s', $repo['owner']['login'] ?? $username, $repo['name'], $repo['default_branch'] ?? 'main', $main_file);
-            $file_contents = wp_remote_retrieve_body(wp_remote_get($raw_url));
-            if ($this->is_valid_wp_plugin($file_contents)) {
-                $repo_data = array(
-                    'plugin_name' => $repo['name'],
-                    'repo_url' => $repo['html_url'],
-                    'owner' => $repo['owner']['login'] ?? $username,
-                    'branches' => json_encode([$repo['default_branch'] ?? 'main']),
-                    'first_fetch' => current_time('mysql'),
-                    'most_recent_fetch' => current_time('mysql'),
-                    'is_installed' => 0
-                );
-                // Save to DB
-                WPGP_Fetch_My_Repos_DB::get_instance()->upsert_repo($repo_data);
-                $valid_repos[] = array(
-                    'name' => $repo['name'],
-                    'full_name' => $repo['full_name'],
-                    'description' => $repo['description'],
-                    'clone_url' => $repo['clone_url'],
-                    'private' => $repo['private'],
-                    'language' => $repo['language'],
-                    'updated_at' => $repo['updated_at']
-                );
-            }
+            $simple_repos[] = array(
+                'name' => $repo['name'],
+                'full_name' => $repo['full_name'],
+                'description' => $repo['description'],
+                'clone_url' => $repo['clone_url'],
+                'private' => $repo['private'],
+                'language' => $repo['language'],
+                'updated_at' => $repo['updated_at']
+            );
         }
-
         wp_send_json_success(array(
-            'repositories' => $valid_repos,
-            'count' => count($valid_repos)
+            'repositories' => $simple_repos,
+            'count' => count($simple_repos)
         ));
 
     // End of method
