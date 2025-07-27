@@ -73,9 +73,7 @@ jQuery(document).ready(function($) {
     
     // Display repositories in a selectable list
     function displayRepositories(repositories) {
-        var $reposList = $('#repos-list');
         var $tableContainer = $('#repos-list-table-container');
-        $reposList.empty();
         $tableContainer.empty();
         if (repositories.length === 0) {
             $tableContainer.html('<table class="wp-list-table widefat fixed striped"><tbody><tr><td colspan="8">No repositories found.</td></tr></tbody></table>');
