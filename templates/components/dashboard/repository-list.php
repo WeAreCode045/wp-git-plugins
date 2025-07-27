@@ -33,12 +33,7 @@ if ($repositories) {
     </button>
     <span class="spinner" style="float: none; margin-top: 0; display: none;"></span>
 </form>
-        <button class="button button-secondary check-all-updates">
-            <span class="dashicons dashicons-update"></span>
-            <?php esc_html_e('Check All Versions', 'wp-git-plugins'); ?>
-            <span id="update-count" class="update-count" style="display: none;"></span>
-        </button>
-        <span class="spinner check-all-spinner" style="float: none; margin-top: 0; display: none;"></span>
+    
     </div>
     
     <?php if (empty($repo_list)) : ?>
@@ -256,6 +251,12 @@ if ( isset( $_GET['wpgp_notice'] ) ) {
             </tbody>
         </table>
     <?php endif; ?>
+     <button class="button button-secondary check-all-updates">
+            <span class="dashicons dashicons-update"></span>
+            <?php esc_html_e('Check All Versions', 'wp-git-plugins'); ?>
+            <span id="update-count" class="update-count" style="display: none;"></span>
+        </button>
+        <span class="spinner check-all-spinner" style="float: none; margin-top: 0; display: none;"></span>
 </div>
 
 <!-- Delete Repository Modal -->
