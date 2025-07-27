@@ -30,7 +30,8 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
         add_action('wp_git_plugins_add_repository_content', array($this, 'add_fetch_content'));
         add_action('wp_ajax_wpgp_fetch_user_repos', array($this, 'handle_fetch_user_repos'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_scripts'));
-    
+    }
+
     /**
      * Enqueue module scripts
      */
@@ -48,7 +49,6 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
                 'ajax_nonce' => wp_create_nonce('wp_git_plugins_admin')
             ));
         }
-    }
     }
     
     /**
@@ -199,29 +199,8 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
             'count' => count($valid_repos)
         ));
 
-         /**
-          * 
-          * @param mixed $hook
-          * @return void
-          **/
-
-    public function enqueue_scripts($hook) {
-    if ($hook === 'toplevel_page_wp-git-plugins') {
-        wp_enqueue_script(
-            'wp-git-plugins-fetch-repos',
-            WP_GIT_PLUGINS_URL . 'modules/fetch-my-repos/fetch-repos.js',
-            array('jquery'),
-            '1.0.0',
-            true
-        );
-        wp_localize_script('wp-git-plugins-fetch-repos', 'wpGitPluginsFetchRepos', array(
-            'ajax_url' => admin_url('admin-ajax.php'),
-            'ajax_nonce' => wp_create_nonce('wp_git_plugins_admin')
-        ));
-    }
+    // End of method
 }
-        // End of method
-    }
 
     /**
      * Check if file contents contain a valid WP plugin header
