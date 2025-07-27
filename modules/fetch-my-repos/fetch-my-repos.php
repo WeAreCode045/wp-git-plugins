@@ -203,4 +203,8 @@ class WP_Git_Plugins_Fetch_My_Repos_Module {
 if (class_exists('WP_Git_Plugins_Modules')) {
     $wp_git_plugins_fetch_my_repos = new WP_Git_Plugins_Fetch_My_Repos_Module();
     $wp_git_plugins_fetch_my_repos->init();
+} else {
+    // If not loaded as a module, we can still initialize the class directly
+    $wp_git_plugins_fetch_my_repos = new WP_Git_Plugins_Fetch_My_Repos_Module();
+    $wp_git_plugins_fetch_my_repos->init();
 }
